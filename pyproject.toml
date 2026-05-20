@@ -5,6 +5,7 @@ description = "A minimal Windows MCP server for assistive WeChat desktop automat
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
+  "fastapi>=0.115.0",
   "mcp>=1.2.0",
   "openai>=1.59.0",
   "openai-agents>=0.7.0",
@@ -13,12 +14,14 @@ dependencies = [
   "pyperclip>=1.9.0",
   "pywinauto>=0.6.8",
   "python-dotenv>=1.0.1",
+  "uvicorn[standard]>=0.30.0",
 ]
 
 [project.scripts]
 wechat-mcp = "wechat_mcp.server:main"
 wechat-mcp-dev = "wechat_mcp.dev_cli:main"
 wechat-agent = "wechat_mcp.agent_sdk:main"
+wechat-web = "wechat_mcp.web:main"
 
 [build-system]
 requires = ["hatchling"]
