@@ -19,7 +19,7 @@ class VisualAgentTests(unittest.TestCase):
                         "wechat_mcp.visual_agent.verify_screenshot_step",
                         return_value={"ok": False, "confidence": "low", "blocking_issue": "search overlay"},
                     ):
-                        with patch("wechat_mcp.visual_agent.write_reply") as write_mock:
+                        with patch("wechat_mcp.visual_agent.replace_current_chat_input") as write_mock:
                             with patch("wechat_mcp.visual_agent.press_enter_to_send") as send_mock:
                                 result = safe_send_current_chat_with_vision("hello", confirm=True)
 
@@ -36,12 +36,11 @@ class VisualAgentTests(unittest.TestCase):
             with patch.dict("os.environ", {"WECHAT_MCP_DATA_DIR": tmp, "WECHAT_SEND_REQUIRES_CONFIRM": "true"}):
                 with patch("wechat_mcp.visual_agent.capture_wechat_window", return_value=source):
                     with patch("wechat_mcp.visual_agent.verify_screenshot_step", return_value=ok) as verify_mock:
-                        with patch("wechat_mcp.visual_agent.close_transient_overlays", return_value="closed"):
-                            with patch("wechat_mcp.visual_agent.click_current_chat_input", return_value="clicked"):
-                                with patch("wechat_mcp.visual_agent.replace_current_chat_input", return_value="written") as write_mock:
-                                    with patch("wechat_mcp.visual_agent.press_enter_to_send", return_value="sent") as send_mock:
-                                        result = safe_send_current_chat_with_vision("hello", confirm=True)
-                                        trace_exists = Path(result["trace_path"]).exists()
+                        with patch("wechat_mcp.visual_agent.click_current_chat_input", return_value="clicked"):
+                            with patch("wechat_mcp.visual_agent.replace_current_chat_input", return_value="written") as write_mock:
+                                with patch("wechat_mcp.visual_agent.press_enter_to_send", return_value="sent") as send_mock:
+                                    result = safe_send_current_chat_with_vision("hello", confirm=True)
+                                    trace_exists = Path(result["trace_path"]).exists()
 
         self.assertTrue(result["sent"])
         self.assertEqual(result["stopped_at"], None)
@@ -65,11 +64,10 @@ class VisualAgentTests(unittest.TestCase):
             with patch.dict("os.environ", {"WECHAT_MCP_DATA_DIR": tmp, "WECHAT_SEND_REQUIRES_CONFIRM": "true"}):
                 with patch("wechat_mcp.visual_agent.capture_wechat_window", return_value=source):
                     with patch("wechat_mcp.visual_agent.verify_screenshot_step", side_effect=[cautious, cautious, ok, ok]):
-                        with patch("wechat_mcp.visual_agent.close_transient_overlays", return_value="closed"):
-                            with patch("wechat_mcp.visual_agent.click_current_chat_input", return_value="clicked"):
-                                with patch("wechat_mcp.visual_agent.replace_current_chat_input", return_value="written"):
-                                    with patch("wechat_mcp.visual_agent.press_enter_to_send", return_value="sent"):
-                                        result = safe_send_current_chat_with_vision("hello", confirm=True)
+                        with patch("wechat_mcp.visual_agent.click_current_chat_input", return_value="clicked"):
+                            with patch("wechat_mcp.visual_agent.replace_current_chat_input", return_value="written"):
+                                with patch("wechat_mcp.visual_agent.press_enter_to_send", return_value="sent"):
+                                    result = safe_send_current_chat_with_vision("hello", confirm=True)
 
         self.assertTrue(result["sent"])
 

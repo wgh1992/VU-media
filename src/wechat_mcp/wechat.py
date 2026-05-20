@@ -56,7 +56,7 @@ def _find_wechat_window():
             rect = window.rectangle()
             width = rect.right - rect.left
             height = rect.bottom - rect.top
-            if not title or not window.is_visible() or width <= 0 or height <= 0:
+            if not title or not window.is_visible():
                 continue
             if not title_pattern.search(title):
                 continue
@@ -68,7 +68,10 @@ def _find_wechat_window():
                 score += 50
             if class_name in {"Chrome_WidgetWin_1", "CabinetWClass"}:
                 score -= 100
-            score += min(width * height // 100_000, 20)
+            if width > 0 and height > 0:
+                score += min(width * height // 100_000, 20)
+            else:
+                score -= 10
             candidates.append((score, window))
         except Exception:
             continue
@@ -110,6 +113,13 @@ def list_visible_windows() -> list[dict[str, str | int | bool]]:
 
 def focus_wechat():
     window = _find_wechat_window()
+    try:
+        rect = window.rectangle()
+        if rect.right - rect.left <= 0 or rect.bottom - rect.top <= 0:
+            window.restore()
+            time.sleep(0.5)
+    except Exception:
+        pass
     window.set_focus()
     time.sleep(0.3)
     return window

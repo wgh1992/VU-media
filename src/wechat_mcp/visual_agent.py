@@ -13,10 +13,8 @@ from .vision import analyze_screenshot
 from .wechat import (
     capture_wechat_window,
     click_current_chat_input,
-    close_transient_overlays,
     press_enter_to_send,
     replace_current_chat_input,
-    write_reply,
 )
 from .config import get_settings
 
@@ -103,9 +101,6 @@ def _is_ok(verification: dict[str, Any]) -> bool:
 
 
 def _is_chat_window_usable(verification: dict[str, Any]) -> bool:
-    issue = str(verification.get("blocking_issue") or "").lower()
-    if "search" in issue or "browser" in issue:
-        return False
     return bool(verification.get("current_chat")) and bool(verification.get("input_box_visible"))
 
 
@@ -134,17 +129,14 @@ def safe_send_current_chat_with_vision(text: str, confirm: bool = False) -> dict
 
     initial = verify(
         "before",
-        "WeChat desktop is visible, a real chat is open, and the chat input area is visible. No browser page or WeChat search results should be in front. Existing draft text in the chat input is allowed because the next write step will replace it.",
+        "WeChat desktop is visible, File Transfer or another chat is open, and the chat input area is visible. No browser page or WeChat search results should be in front. Existing draft text in the chat input is allowed because the next write step will replace it.",
     )
     if not (_is_ok(initial) or _is_chat_window_usable(initial)):
         return _finish_visual_send(trace, steps, text, sent=False, stopped_at="before", reason="Initial state failed visual verification.")
 
-    close_result = close_transient_overlays()
-    trace.append({"type": "action", "step": "close_overlays", "result": close_result})
-
     ready = verify(
         "ready",
-        "The current WeChat chat input area is visible and ready for typing. No search overlay is active. Existing draft text is allowed because the write step will replace it.",
+        "The current WeChat chat input area is visible and ready for typing in File Transfer or another chat. Existing draft text is allowed because the write step will replace it.",
     )
     if not (_is_ok(ready) or _is_chat_window_usable(ready)):
         return _finish_visual_send(trace, steps, text, sent=False, stopped_at="ready", reason="Input area was not ready.")
