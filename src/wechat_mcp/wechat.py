@@ -167,6 +167,20 @@ def write_reply(text: str) -> str:
     return "Reply text pasted into the active WeChat input box."
 
 
+def replace_current_chat_input(text: str) -> str:
+    if not text.strip():
+        raise ValueError("text is required.")
+
+    click_current_chat_input()
+    send_keys("^a")
+    time.sleep(0.1)
+    send_keys("{BACKSPACE}")
+    time.sleep(0.1)
+    pyperclip.copy(text)
+    send_keys("^v")
+    return "Current chat input replaced with reply text."
+
+
 def press_enter_to_send() -> str:
     focus_wechat()
     send_keys("{ENTER}")
