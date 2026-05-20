@@ -26,6 +26,7 @@ SEND_TOOLS = [
     "send_message_confirmed",
     "auto_send_message",
     "send_current_chat_message",
+    "safe_send_current_chat_with_vision",
 ]
 
 

@@ -54,6 +54,7 @@ python -m wechat_mcp.dev_cli daily-check
 python -m wechat_mcp.dev_cli agent-tools --mode daily
 python -m wechat_mcp.dev_cli agent-run "Please run one WeChat daily check." --mode daily
 python -m wechat_mcp.dev_cli capture
+python -m wechat_mcp.dev_cli safe-send-current "test message" --confirm
 python -m wechat_mcp.dev_cli focus "联系人名字"
 python -m wechat_mcp.dev_cli read-store --contact "联系人名字"
 python -m wechat_mcp.dev_cli draft "对方说：下午三点见。请自然回复。"
@@ -78,6 +79,7 @@ After reinstalling with `pip install -e .`, you can also use `wechat-mcp-dev hea
 - `send_message_confirmed(confirm: bool = false)`
 - `auto_send_message(chat_name: str, text: str, confirm: bool = false)`
 - `send_current_chat_message(text: str, confirm: bool = false)`
+- `safe_send_current_chat_with_vision(text: str, confirm: bool = false)`
 
 ## Safety Defaults
 
@@ -159,6 +161,14 @@ If the target chat is already open, prefer the current-chat path because it does
 ```powershell
 python -m wechat_mcp.dev_cli send-current "test message" --confirm
 ```
+
+For the most reliable desktop-agent path, use visual verification:
+
+```powershell
+python -m wechat_mcp.dev_cli safe-send-current "test message" --confirm
+```
+
+This captures screenshots before writing, after writing, and after sending. The trace is saved under `.data/runs/<run_id>/`.
 
 Unattended sending requires this in `.env`:
 

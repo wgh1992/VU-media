@@ -13,6 +13,7 @@ from .store import ConversationStore, text_log_payload
 from .vision import analyze_screenshot as analyze_image
 from .vision import draft_reply as draft_reply_text
 from .vision import summarize_chat as summarize_chat_text
+from .visual_agent import safe_send_current_chat_with_vision as visual_safe_send_current
 from .wechat import capture_wechat_window as capture_window
 from .wechat import focus_chat as focus_wechat_chat
 from .wechat import list_visible_windows as list_windows
@@ -192,6 +193,12 @@ def auto_send_message(chat_name: str, text: str, confirm: bool = False) -> dict:
 def send_current_chat_message(text: str, confirm: bool = False) -> dict:
     """Paste text into the currently open WeChat chat and send if confirmation policy allows it."""
     return safe_send_current_chat_message(text, confirm)
+
+
+@mcp.tool()
+def safe_send_current_chat_with_vision(text: str, confirm: bool = False) -> dict:
+    """Send to the currently open WeChat chat with screenshot verification before and after each key step."""
+    return visual_safe_send_current(text, confirm)
 
 
 @mcp.resource("wechat-mcp://status")

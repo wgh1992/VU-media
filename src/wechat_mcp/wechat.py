@@ -8,6 +8,7 @@ from pathlib import Path
 import pyperclip
 from pywinauto import Desktop
 from pywinauto.keyboard import send_keys
+from pywinauto.mouse import click
 
 from .config import get_settings
 from .screen import Region, capture_region
@@ -130,6 +131,15 @@ def close_transient_overlays() -> str:
     send_keys("{ESC}")
     time.sleep(0.3)
     return "Pressed Escape to close transient WeChat overlays."
+
+
+def click_current_chat_input() -> str:
+    bounds = get_wechat_bounds()
+    x = bounds.left + int(bounds.width * 0.70)
+    y = bounds.bottom - 80
+    click(button="left", coords=(x, y))
+    time.sleep(0.2)
+    return f"Clicked current chat input area at ({x}, {y})."
 
 
 def focus_chat(chat_name: str) -> str:
