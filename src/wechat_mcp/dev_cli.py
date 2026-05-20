@@ -20,6 +20,7 @@ from .server import (
     read_current_chat,
     read_current_chat_and_store,
     recent_conversation_events,
+    send_current_chat_message,
     summarize_chat,
     write_reply,
 )
@@ -96,6 +97,10 @@ def main() -> None:
     send_parser.add_argument("text")
     send_parser.add_argument("--confirm", action="store_true")
 
+    send_current_parser = subparsers.add_parser("send-current", help="Paste text into the current open chat and send.")
+    send_current_parser.add_argument("text")
+    send_current_parser.add_argument("--confirm", action="store_true")
+
     args = parser.parse_args()
 
     if args.command == "health":
@@ -129,6 +134,8 @@ def main() -> None:
         _print_text(write_reply(args.text, args.contact))
     elif args.command == "send":
         _print_json(auto_send_message(args.chat_name, args.text, args.confirm))
+    elif args.command == "send-current":
+        _print_json(send_current_chat_message(args.text, args.confirm))
 
 
 if __name__ == "__main__":

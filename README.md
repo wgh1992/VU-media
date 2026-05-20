@@ -77,6 +77,7 @@ After reinstalling with `pip install -e .`, you can also use `wechat-mcp-dev hea
 - `write_reply(text: str, contact_name: str | None = None)`
 - `send_message_confirmed(confirm: bool = false)`
 - `auto_send_message(chat_name: str, text: str, confirm: bool = false)`
+- `send_current_chat_message(text: str, confirm: bool = false)`
 
 ## Safety Defaults
 
@@ -151,6 +152,12 @@ Manual send with confirmation:
 
 ```powershell
 python -m wechat_mcp.dev_cli send "File Transfer" "test message" --confirm
+```
+
+If the target chat is already open, prefer the current-chat path because it does not touch WeChat search:
+
+```powershell
+python -m wechat_mcp.dev_cli send-current "test message" --confirm
 ```
 
 Unattended sending requires this in `.env`:

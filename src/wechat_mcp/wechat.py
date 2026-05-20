@@ -125,6 +125,13 @@ def capture_wechat_window(output_path: str | Path | None = None) -> Path:
     return capture_region(bounds.as_region(), output_path)
 
 
+def close_transient_overlays() -> str:
+    focus_wechat()
+    send_keys("{ESC}")
+    time.sleep(0.3)
+    return "Pressed Escape to close transient WeChat overlays."
+
+
 def focus_chat(chat_name: str) -> str:
     if not chat_name.strip():
         raise ValueError("chat_name is required.")

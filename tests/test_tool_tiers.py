@@ -21,6 +21,7 @@ class ToolTierTests(unittest.TestCase):
         tools = set(allowed_tools_for_mode("send"))
         self.assertIn("send_message_confirmed", tools)
         self.assertIn("auto_send_message", tools)
+        self.assertIn("send_current_chat_message", tools)
 
 
 if __name__ == "__main__":

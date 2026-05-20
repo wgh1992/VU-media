@@ -6,6 +6,7 @@ from . import __version__
 from .agent import daily_check_once as run_daily_check_once
 from .prompts import PromptManager
 from .safety import auto_send_message as safe_auto_send_message
+from .safety import send_current_chat_message as safe_send_current_chat_message
 from .safety import send_message_confirmed as safe_send_message
 from .config import get_settings
 from .store import ConversationStore, text_log_payload
@@ -185,6 +186,12 @@ def send_message_confirmed(confirm: bool = False) -> str:
 def auto_send_message(chat_name: str, text: str, confirm: bool = False) -> dict:
     """Focus a chat, paste text, and send it if confirmation policy allows it."""
     return safe_auto_send_message(chat_name, text, confirm)
+
+
+@mcp.tool()
+def send_current_chat_message(text: str, confirm: bool = False) -> dict:
+    """Paste text into the currently open WeChat chat and send if confirmation policy allows it."""
+    return safe_send_current_chat_message(text, confirm)
 
 
 @mcp.resource("wechat-mcp://status")

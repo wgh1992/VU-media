@@ -6,7 +6,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from wechat_mcp.prompts import PromptManager
-from wechat_mcp.safety import auto_send_message, send_message_confirmed
+from wechat_mcp.safety import auto_send_message, send_current_chat_message, send_message_confirmed
 
 
 class PromptManagerTests(unittest.TestCase):
@@ -33,8 +33,12 @@ class PromptManagerTests(unittest.TestCase):
 
 class SafetyTests(unittest.TestCase):
     def test_send_refuses_without_confirm_by_default(self):
-        result = send_message_confirmed(confirm=False)
+        with patch.dict("os.environ", {"WECHAT_SEND_REQUIRES_CONFIRM": "true"}):
+            with patch("wechat_mcp.safety.press_enter_to_send", return_value="sent") as enter_mock:
+                result = send_message_confirmed(confirm=False)
+
         self.assertIn("Refused to send", result)
+        enter_mock.assert_not_called()
 
     def test_send_calls_enter_when_confirmed(self):
         with patch("wechat_mcp.safety.press_enter_to_send", return_value="sent") as mocked:
@@ -67,6 +71,19 @@ class SafetyTests(unittest.TestCase):
 
         self.assertTrue(result["sent"])
         self.assertEqual(result["send_result"], "sent")
+        enter_mock.assert_called_once_with()
+
+    def test_send_current_chat_sends_without_focus_search(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            with patch.dict("os.environ", {"WECHAT_MCP_DATA_DIR": tmp, "WECHAT_SEND_REQUIRES_CONFIRM": "true"}):
+                with patch("wechat_mcp.safety.close_transient_overlays", return_value="closed") as close_mock:
+                    with patch("wechat_mcp.safety.write_reply", return_value="written") as write_mock:
+                        with patch("wechat_mcp.safety.press_enter_to_send", return_value="sent") as enter_mock:
+                            result = send_current_chat_message("hello", confirm=True)
+
+        self.assertTrue(result["sent"])
+        close_mock.assert_called_once_with()
+        write_mock.assert_called_once_with("hello")
         enter_mock.assert_called_once_with()
 
 
