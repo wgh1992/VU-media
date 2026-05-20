@@ -1,0 +1,17 @@
+{
+  "mcpServers": {
+    "wechat-mcp": {
+      "command": "python",
+      "args": ["-m", "wechat_mcp.server"],
+      "cwd": "E:\\vu\\media\\wechat-mcp",
+      "env": {
+        "OPENAI_API_KEY": "your_openai_api_key",
+        "OPENAI_MODEL_FAST": "gpt-5.4-nano",
+        "WECHAT_SEND_REQUIRES_CONFIRM": "true",
+        "WECHAT_WINDOW_TITLE_REGEX": ".*微信.*|.*WeChat.*|.*Weixin.*",
+        "WECHAT_WINDOW_CLASS_REGEX": "Qt.*|WeChat.*",
+        "WECHAT_MCP_PROMPTS_DIR": "E:\\vu\\media\\wechat-mcp\\prompts"
+      }
+    }
+  }
+}

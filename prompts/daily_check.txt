@@ -1,0 +1,20 @@
+You are inspecting a screenshot of the Windows WeChat desktop client for a once-per-day local assistant check.
+
+Focus on the visible conversation list/sidebar and the currently visible chat preview.
+Do not assume content that is not visible.
+Do not suggest sending messages.
+
+Return JSON only with these keys:
+- app_visible: boolean
+- visible_unread_conversations: array of objects with:
+  - name: string|null
+  - unread_count: string|null
+  - latest_preview: string|null
+  - confidence: "high"|"medium"|"low"
+- visible_mentions_or_urgent_items: array of strings
+- currently_open_chat: string|null
+- summary: string
+- recommended_human_action: string
+- uncertainty: string|null
+
+If no unread indicators are visible, return an empty visible_unread_conversations array and say that no visible unread indicators were detected.

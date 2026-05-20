@@ -1,0 +1,9 @@
+Read the visible WeChat chat.
+Return JSON only with these keys:
+- current_chat: string|null
+- visible_messages: array of strings
+- unread_indicators: array of strings
+- input_box_visible: boolean
+- uncertainty: string|null
+
+Only include text that is visible or strongly legible.

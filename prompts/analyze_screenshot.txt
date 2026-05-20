@@ -1,0 +1,10 @@
+Analyze this WeChat desktop screenshot.
+Return compact JSON only with these keys:
+- app_visible: boolean
+- current_chat: string|null
+- visible_messages: array of strings
+- input_box_visible: boolean
+- suggested_next_action: string
+- uncertainty: string|null
+
+Do not invent message text. If text is unclear, say so in uncertainty.

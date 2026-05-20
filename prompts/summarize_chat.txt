@@ -1,0 +1,4 @@
+Summarize the WeChat conversation for future context.
+Keep it under 160 Chinese characters unless important details require more.
+Preserve names, commitments, times, dates, unresolved tasks, and promised follow-ups.
+Do not include secrets, verification codes, passwords, or payment details.
