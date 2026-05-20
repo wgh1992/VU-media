@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 from .config import get_settings
+from .store import ConversationStore, text_log_payload
+from .wechat import focus_chat, write_reply
 from .wechat import press_enter_to_send
 
 
@@ -12,3 +14,35 @@ def send_message_confirmed(confirm: bool = False) -> str:
             "a human has checked the WeChat input box."
         )
     return press_enter_to_send()
+
+
+def auto_send_message(chat_name: str, text: str, confirm: bool = False) -> dict:
+    if not chat_name.strip():
+        raise ValueError("chat_name is required.")
+    if not text.strip():
+        raise ValueError("text is required.")
+
+    focus_result = focus_chat(chat_name)
+    write_result = write_reply(text)
+    send_result = send_message_confirmed(confirm=confirm)
+    sent = not send_result.startswith("Refused to send")
+
+    event = ConversationStore().append_event(
+        chat_name,
+        "auto_send_message",
+        {
+            **text_log_payload(text),
+            "focus_result": focus_result,
+            "write_result": write_result,
+            "send_result": send_result,
+            "sent": sent,
+        },
+    )
+    return {
+        "chat_name": chat_name,
+        "sent": sent,
+        "focus_result": focus_result,
+        "write_result": write_result,
+        "send_result": send_result,
+        "event": event,
+    }

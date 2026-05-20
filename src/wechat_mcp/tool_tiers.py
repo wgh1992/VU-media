@@ -24,6 +24,7 @@ ASSISTIVE_TOOLS = [
 SEND_TOOLS = [
     *ASSISTIVE_TOOLS,
     "send_message_confirmed",
+    "auto_send_message",
 ]
 
 

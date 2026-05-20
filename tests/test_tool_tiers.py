@@ -20,6 +20,7 @@ class ToolTierTests(unittest.TestCase):
     def test_send_mode_must_be_explicit(self):
         tools = set(allowed_tools_for_mode("send"))
         self.assertIn("send_message_confirmed", tools)
+        self.assertIn("auto_send_message", tools)
 
 
 if __name__ == "__main__":

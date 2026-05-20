@@ -5,6 +5,7 @@ from mcp.server.fastmcp import FastMCP
 from . import __version__
 from .agent import daily_check_once as run_daily_check_once
 from .prompts import PromptManager
+from .safety import auto_send_message as safe_auto_send_message
 from .safety import send_message_confirmed as safe_send_message
 from .config import get_settings
 from .store import ConversationStore, text_log_payload
@@ -178,6 +179,12 @@ def write_reply(text: str, contact_name: str | None = None) -> str:
 def send_message_confirmed(confirm: bool = False) -> str:
     """Send the current WeChat input only after explicit confirmation."""
     return safe_send_message(confirm)
+
+
+@mcp.tool()
+def auto_send_message(chat_name: str, text: str, confirm: bool = False) -> dict:
+    """Focus a chat, paste text, and send it if confirmation policy allows it."""
+    return safe_auto_send_message(chat_name, text, confirm)
 
 
 @mcp.resource("wechat-mcp://status")

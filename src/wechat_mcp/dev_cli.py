@@ -10,6 +10,7 @@ from .agent_sdk import run_wechat_agent
 from .mcp_adapter import list_agent_mcp_tools
 from .server import (
     analyze_screenshot,
+    auto_send_message,
     capture_wechat_window,
     daily_check_once,
     draft_reply,
@@ -90,6 +91,11 @@ def main() -> None:
     write_parser.add_argument("text")
     write_parser.add_argument("--contact", default=None)
 
+    send_parser = subparsers.add_parser("send", help="Focus a chat, paste text, and send if confirmation policy allows.")
+    send_parser.add_argument("chat_name")
+    send_parser.add_argument("text")
+    send_parser.add_argument("--confirm", action="store_true")
+
     args = parser.parse_args()
 
     if args.command == "health":
@@ -121,6 +127,8 @@ def main() -> None:
         _print_json(recent_conversation_events(args.contact, args.limit))
     elif args.command == "write":
         _print_text(write_reply(args.text, args.contact))
+    elif args.command == "send":
+        _print_json(auto_send_message(args.chat_name, args.text, args.confirm))
 
 
 if __name__ == "__main__":

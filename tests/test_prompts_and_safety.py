@@ -6,7 +6,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from wechat_mcp.prompts import PromptManager
-from wechat_mcp.safety import send_message_confirmed
+from wechat_mcp.safety import auto_send_message, send_message_confirmed
 
 
 class PromptManagerTests(unittest.TestCase):
@@ -42,6 +42,32 @@ class SafetyTests(unittest.TestCase):
 
         self.assertEqual(result, "sent")
         mocked.assert_called_once_with()
+
+    def test_auto_send_respects_confirmation_policy(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            with patch.dict("os.environ", {"WECHAT_MCP_DATA_DIR": tmp, "WECHAT_SEND_REQUIRES_CONFIRM": "true"}):
+                with patch("wechat_mcp.safety.focus_chat", return_value="focused") as focus_mock:
+                    with patch("wechat_mcp.safety.write_reply", return_value="written") as write_mock:
+                        with patch("wechat_mcp.safety.press_enter_to_send", return_value="sent") as enter_mock:
+                            result = auto_send_message("File Transfer", "hello", confirm=False)
+
+        self.assertFalse(result["sent"])
+        self.assertIn("Refused to send", result["send_result"])
+        focus_mock.assert_called_once_with("File Transfer")
+        write_mock.assert_called_once_with("hello")
+        enter_mock.assert_not_called()
+
+    def test_auto_send_sends_when_confirmed(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            with patch.dict("os.environ", {"WECHAT_MCP_DATA_DIR": tmp, "WECHAT_SEND_REQUIRES_CONFIRM": "true"}):
+                with patch("wechat_mcp.safety.focus_chat", return_value="focused"):
+                    with patch("wechat_mcp.safety.write_reply", return_value="written"):
+                        with patch("wechat_mcp.safety.press_enter_to_send", return_value="sent") as enter_mock:
+                            result = auto_send_message("File Transfer", "hello", confirm=True)
+
+        self.assertTrue(result["sent"])
+        self.assertEqual(result["send_result"], "sent")
+        enter_mock.assert_called_once_with()
 
 
 if __name__ == "__main__":

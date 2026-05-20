@@ -76,6 +76,7 @@ After reinstalling with `pip install -e .`, you can also use `wechat-mcp-dev hea
 - `recent_conversation_events(contact_name: str | None = None, limit: int = 20)`
 - `write_reply(text: str, contact_name: str | None = None)`
 - `send_message_confirmed(confirm: bool = false)`
+- `auto_send_message(chat_name: str, text: str, confirm: bool = false)`
 
 ## Safety Defaults
 
@@ -143,6 +144,28 @@ python -m wechat_mcp.dev_cli agent-run "Please run one WeChat daily check." --mo
 ```
 
 For safety, daily mode only exposes low-risk tools and cannot write or send WeChat messages.
+
+## Sending Messages
+
+Manual send with confirmation:
+
+```powershell
+python -m wechat_mcp.dev_cli send "File Transfer" "test message" --confirm
+```
+
+Unattended sending requires this in `.env`:
+
+```env
+WECHAT_SEND_REQUIRES_CONFIRM=false
+```
+
+Then send mode can use `auto_send_message`:
+
+```powershell
+python -m wechat_mcp.dev_cli agent-run "Send File Transfer this message: test message" --mode send
+```
+
+Daily and assist modes do not expose automatic send tools.
 
 ## Notes
 
