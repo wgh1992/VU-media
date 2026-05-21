@@ -106,6 +106,7 @@ class WebTests(unittest.TestCase):
         self.assertIn("重新发", prompt)
         self.assertIn("re-send", prompt)
         self.assertIn("even if a similar outgoing bubble is already visible", prompt)
+        self.assertIn("retry the actual requested tool", prompt)
         self.assertIn("Latest user request:\n没有重新发一下", prompt)
 
     def test_chat_rejects_invalid_mode(self):

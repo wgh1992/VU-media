@@ -94,6 +94,7 @@ def _prompt_with_context(message: str, history: list[dict[str, Any]]) -> str:
         "Resolve short replies such as yes, ok, 好的, 可以, 是的, 发, 发送, 可以发, 重新发, 再发, 重发, or 确认 against the immediately preceding agent question or proposed action.\n"
         "If the latest user reply confirms a proposed WeChat send action, send it immediately instead of asking the user to repeat the target or message.\n"
         "If the latest user reply asks to resend/re-send/send again, re-send the prior proposed message even if a similar outgoing bubble is already visible.\n"
+        "If a prior turn said WeChat was unavailable, retry the actual requested tool when the latest user asks to try again; do not repeat the old failure from memory.\n"
         "If the confirmed action requires a tool that is unavailable in the current mode, say exactly which mode is needed and what the user should do next.\n\n"
         f"Prior turns JSON:\n{json.dumps(compact_history, ensure_ascii=False)}\n\n"
         f"Latest user request:\n{message}"
