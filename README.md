@@ -78,10 +78,9 @@ Then open:
 http://127.0.0.1:8787
 ```
 
-The web UI has three modes:
+The web UI has two modes:
 
 - `daily`: low-risk daily checks only.
-- `assist`: read, summarize, focus chats, and draft/write replies without sending.
 - `send`: exposes send tools, including `safe_send_current_chat_with_vision`.
 
 Example prompt for reading a contact:
@@ -219,7 +218,7 @@ Then send mode can use `auto_send_message`:
 python -m wechat_mcp.dev_cli agent-run "Send File Transfer this message: test message" --mode send
 ```
 
-Daily and assist modes do not expose automatic send tools.
+Only send mode exposes automatic send tools.
 
 ## Notes
 

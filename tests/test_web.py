@@ -20,6 +20,7 @@ class WebTests(unittest.TestCase):
         body = response.json()
         self.assertTrue(body["settings"]["openai_api_key"])
         self.assertNotEqual(body["settings"]["openai_api_key"], "secret")
+        self.assertEqual(body["modes"], ["daily", "send"])
 
     def test_chat_runs_agent(self):
         result = SimpleNamespace(final_output="ok from agent")
@@ -29,15 +30,15 @@ class WebTests(unittest.TestCase):
                     client = TestClient(app)
                     response = client.post(
                         "/api/chat",
-                        json={"message": "read current chat", "mode": "assist", "max_turns": 3},
+                        json={"message": "read current chat", "mode": "send", "max_turns": 3},
                     )
 
         self.assertEqual(response.status_code, 200)
         body = response.json()
         self.assertEqual(body["output"], "ok from agent")
-        self.assertEqual(body["mode"], "assist")
+        self.assertEqual(body["mode"], "send")
         self.assertTrue(body["conversation_id"].startswith("web-"))
-        run_mock.assert_awaited_once_with("read current chat", mode="assist", max_turns=3)
+        run_mock.assert_awaited_once_with("read current chat", mode="send", max_turns=3)
 
     def test_chat_uses_conversation_history(self):
         result = SimpleNamespace(final_output="second answer")
@@ -50,7 +51,7 @@ class WebTests(unittest.TestCase):
                         json={
                             "conversation_id": "web-test",
                             "message": "second question",
-                            "mode": "assist",
+                            "mode": "send",
                             "max_turns": 3,
                         },
                     )
@@ -70,7 +71,7 @@ class WebTests(unittest.TestCase):
                         json={
                             "conversation_id": "same-chat",
                             "message": "first question",
-                            "mode": "assist",
+                            "mode": "send",
                             "max_turns": 3,
                         },
                     )
@@ -80,7 +81,7 @@ class WebTests(unittest.TestCase):
                         json={
                             "conversation_id": "same-chat",
                             "message": "follow up",
-                            "mode": "assist",
+                            "mode": "send",
                             "max_turns": 3,
                         },
                     )
@@ -95,7 +96,7 @@ class WebTests(unittest.TestCase):
         client = TestClient(app)
         response = client.post(
             "/api/chat",
-            json={"message": "hello", "mode": "danger", "max_turns": 3},
+            json={"message": "hello", "mode": "assist", "max_turns": 3},
         )
 
         self.assertEqual(response.status_code, 422)

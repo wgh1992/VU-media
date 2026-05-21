@@ -17,12 +17,12 @@ from .config import get_settings
 from .store import utc_now_iso
 
 
-Mode = Literal["daily", "assist", "send"]
+Mode = Literal["daily", "send"]
 
 
 class ChatRequest(BaseModel):
     message: str = Field(min_length=1, max_length=4000)
-    mode: Mode = "assist"
+    mode: Mode = "send"
     max_turns: int = Field(default=6, ge=1, le=12)
     conversation_id: str | None = Field(default=None, max_length=80)
 
@@ -87,10 +87,13 @@ def _prompt_with_context(message: str, history: list[dict[str, Any]]) -> str:
             "content": str(event.get("content", ""))[:1200],
         }
         for event in history
-        if event.get("role") in {"user", "assistant"}
+        if event.get("role") in {"user", "agent"}
     ]
     return (
-        "Continue this web chat conversation. Use the prior turns as context, but follow the latest user request.\n\n"
+        "Continue this web chat conversation. Use the prior turns as context, but follow the latest user request.\n"
+        "Resolve short replies such as yes, ok, 好的, 可以, 是的, 发, 发送, or 确认 against the immediately preceding agent question or proposed action.\n"
+        "If the latest user reply confirms a proposed WeChat action, continue that action instead of asking the user to repeat the target or message.\n"
+        "If the confirmed action requires a tool that is unavailable in the current mode, say exactly which mode is needed and what the user should do next.\n\n"
         f"Prior turns JSON:\n{json.dumps(compact_history, ensure_ascii=False)}\n\n"
         f"Latest user request:\n{message}"
     )
@@ -109,7 +112,7 @@ def health() -> dict:
     return {
         "ok": True,
         "settings": safe_settings,
-        "modes": ["daily", "assist", "send"],
+        "modes": ["daily", "send"],
     }
 
 
@@ -128,11 +131,11 @@ async def chat(request: ChatRequest) -> ChatResponse:
     try:
         result = await run_wechat_agent(agent_prompt, mode=request.mode, max_turns=request.max_turns)
     except Exception as exc:
-        store.append(conversation_id, "assistant", f"ERROR: {exc}", request.mode)
+        store.append(conversation_id, "agent", f"ERROR: {exc}", request.mode)
         raise HTTPException(status_code=500, detail=str(exc)) from exc
 
     output = str(result.final_output)
-    store.append(conversation_id, "assistant", output, request.mode)
+    store.append(conversation_id, "agent", output, request.mode)
     return ChatResponse(output=output, mode=request.mode, conversation_id=conversation_id)
 
 
@@ -251,7 +254,7 @@ HTML = """
       background: #e9f7ef;
       border-color: #b9e7cd;
     }
-    .msg.assistant { align-self: flex-start; }
+    .msg.agent { align-self: flex-start; }
     .msg.error {
       border-color: #fed7aa;
       background: #fff7ed;
@@ -335,9 +338,8 @@ HTML = """
         <label>
           Mode
           <select id="mode">
-            <option value="assist" selected>assist</option>
             <option value="daily">daily</option>
-            <option value="send">send</option>
+            <option value="send" selected>send</option>
           </select>
         </label>
         <label>
@@ -349,8 +351,8 @@ HTML = """
     </header>
     <main>
       <div class="messages" id="messages">
-        <div class="msg assistant">
-          <div class="meta">assistant</div>
+        <div class="msg agent">
+          <div class="meta">agent</div>
           可以直接问我读取当前微信、聚焦某个联系人、做 daily check，或者在 send mode 下明确要求发送。Agent SDK trace 会出现在 OpenAI Dashboard。
         </div>
       </div>
@@ -360,7 +362,7 @@ HTML = """
         <textarea id="message" placeholder="例如：Focus yuanmiao, read visible messages, summarize in Chinese. Do not send anything."></textarea>
         <button id="send" type="submit">Send</button>
       </form>
-      <div class="hint" id="hint">assist mode 不会发送消息；send mode 会暴露发送工具，仍建议在 prompt 中写清 confirm=true。</div>
+      <div class="hint" id="hint">send mode 可以读取、编写，并在明确确认后发送消息。</div>
     </footer>
   </div>
   <script>
@@ -400,7 +402,7 @@ HTML = """
       } else if (mode.value === 'daily') {
         hint.textContent = 'daily mode 只做低风险检查，不会读取单个聊天详情或发送消息。';
       } else {
-        hint.textContent = 'assist mode 可读取、总结、写草稿，但不会发送消息。';
+        hint.textContent = 'send mode 可以读取、编写，并在明确确认后发送消息。';
       }
     }
 
@@ -453,9 +455,9 @@ HTML = """
           throw new Error(data.detail || `HTTP ${res.status}`);
         }
         setConversationId(data.conversation_id);
-        addMessage('assistant', data.output);
+        addMessage('agent', data.output);
       } catch (err) {
-        addMessage('assistant', String(err.message || err), 'error');
+        addMessage('agent', String(err.message || err), 'error');
       } finally {
         button.disabled = false;
         button.textContent = 'Send';
@@ -473,7 +475,7 @@ HTML = """
     newChat.addEventListener('click', () => {
       setConversationId('');
       messages.innerHTML = '';
-      addMessage('assistant', '已开启新对话。下一条消息会创建新的 conversation id。');
+      addMessage('agent', '已开启新对话。下一条消息会创建新的 conversation id。');
       input.focus();
     });
     refreshHint();
