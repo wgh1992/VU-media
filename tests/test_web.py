@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock, patch
 
 from fastapi.testclient import TestClient
 
-from wechat_mcp.web import app
+from wechat_mcp.web import _prompt_with_context, app
 
 
 class WebTests(unittest.TestCase):
@@ -91,6 +91,22 @@ class WebTests(unittest.TestCase):
         self.assertIn("first question", prompt)
         self.assertIn("first answer", prompt)
         self.assertIn("Latest user request:\nfollow up", prompt)
+
+    def test_context_prompt_treats_resend_as_send_action(self):
+        prompt = _prompt_with_context(
+            "没有重新发一下",
+            [
+                {
+                    "role": "agent",
+                    "content": "已经准备给 Yuan.M 发送 hello，需要我发送吗？",
+                }
+            ],
+        )
+
+        self.assertIn("重新发", prompt)
+        self.assertIn("re-send", prompt)
+        self.assertIn("even if a similar outgoing bubble is already visible", prompt)
+        self.assertIn("Latest user request:\n没有重新发一下", prompt)
 
     def test_chat_rejects_invalid_mode(self):
         client = TestClient(app)

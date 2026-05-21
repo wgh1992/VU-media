@@ -91,8 +91,9 @@ def _prompt_with_context(message: str, history: list[dict[str, Any]]) -> str:
     ]
     return (
         "Continue this web chat conversation. Use the prior turns as context, but follow the latest user request.\n"
-        "Resolve short replies such as yes, ok, 好的, 可以, 是的, 发, 发送, or 确认 against the immediately preceding agent question or proposed action.\n"
-        "If the latest user reply confirms a proposed WeChat action, continue that action instead of asking the user to repeat the target or message.\n"
+        "Resolve short replies such as yes, ok, 好的, 可以, 是的, 发, 发送, 可以发, 重新发, 再发, 重发, or 确认 against the immediately preceding agent question or proposed action.\n"
+        "If the latest user reply confirms a proposed WeChat send action, send it immediately instead of asking the user to repeat the target or message.\n"
+        "If the latest user reply asks to resend/re-send/send again, re-send the prior proposed message even if a similar outgoing bubble is already visible.\n"
         "If the confirmed action requires a tool that is unavailable in the current mode, say exactly which mode is needed and what the user should do next.\n\n"
         f"Prior turns JSON:\n{json.dumps(compact_history, ensure_ascii=False)}\n\n"
         f"Latest user request:\n{message}"
@@ -362,7 +363,7 @@ HTML = """
         <textarea id="message" placeholder="例如：Focus yuanmiao, read visible messages, summarize in Chinese. Do not send anything."></textarea>
         <button id="send" type="submit">Send</button>
       </form>
-      <div class="hint" id="hint">send mode 可以读取、编写，并在明确确认后发送消息。</div>
+      <div class="hint" id="hint">send mode 可以直接发送明确的消息请求。</div>
     </footer>
   </div>
   <script>
@@ -398,11 +399,11 @@ HTML = """
 
     function refreshHint() {
       if (mode.value === 'send') {
-        hint.innerHTML = '<span class="send-warning">send mode 已开启：</span>会暴露发送工具。发送前请在指令里明确目标、正文和 confirm=true。';
+        hint.innerHTML = '<span class="send-warning">send mode 已开启：</span>明确目标和正文后会直接发送，不再二次确认。';
       } else if (mode.value === 'daily') {
         hint.textContent = 'daily mode 只做低风险检查，不会读取单个聊天详情或发送消息。';
       } else {
-        hint.textContent = 'send mode 可以读取、编写，并在明确确认后发送消息。';
+        hint.textContent = 'send mode 可以直接发送明确的消息请求。';
       }
     }
 

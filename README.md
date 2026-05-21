@@ -13,7 +13,7 @@ This project intentionally controls the official Windows desktop client through 
 - Store local conversation events and summaries as JSONL.
 - Draft a reply with OpenAI.
 - Write a reply into the input box.
-- Send only when explicitly confirmed.
+- Send clear user-requested messages directly when local safety settings allow it.
 
 ## Setup
 
@@ -92,7 +92,7 @@ Focus the WeChat chat named yuanmiao, read the currently visible messages, and s
 Example prompt for visual verified sending when the target chat is already open:
 
 ```text
-Use safe_send_current_chat_with_vision to send exactly this text to the currently open WeChat chat: hello from web. Pass confirm=true.
+Use safe_send_current_chat_with_vision to send exactly this text to the currently open WeChat chat: hello from web.
 ```
 
 Requests from the web UI go through `Agent SDK + MCP`, so workflow traces appear in the OpenAI Dashboard Agent Traces page. Visual step screenshots are still saved locally under `.data/runs/<run_id>/`.
@@ -119,9 +119,10 @@ The web UI keeps a `conversation_id` in browser local storage and stores recent 
 
 ## Safety Defaults
 
-`send_message_confirmed` refuses to press Enter unless `confirm=true`. Keep `WECHAT_SEND_REQUIRES_CONFIRM=true` for normal use.
+`WECHAT_SEND_REQUIRES_CONFIRM=false` lets the Agent SDK and web chat send clear requests directly without a second confirmation.
+Set it to `true` if you want every send tool to require an explicit `confirm=true` argument.
 
-The recommended flow is:
+If you turn confirmation back on, the recommended manual flow is:
 
 1. `focus_chat`
 2. `read_current_chat`
@@ -206,7 +207,7 @@ python -m wechat_mcp.dev_cli safe-send-current "test message" --confirm
 
 This captures screenshots before writing, after writing, and after sending. The trace is saved under `.data/runs/<run_id>/`.
 
-Unattended sending requires this in `.env`:
+Direct Agent SDK/web sending without a second confirmation requires this in `.env`:
 
 ```env
 WECHAT_SEND_REQUIRES_CONFIRM=false

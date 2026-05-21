@@ -73,6 +73,18 @@ class SafetyTests(unittest.TestCase):
         self.assertEqual(result["send_result"], "sent")
         enter_mock.assert_called_once_with()
 
+    def test_auto_send_sends_without_confirm_when_policy_allows(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            with patch.dict("os.environ", {"WECHAT_MCP_DATA_DIR": tmp, "WECHAT_SEND_REQUIRES_CONFIRM": "false"}):
+                with patch("wechat_mcp.safety.focus_chat", return_value="focused"):
+                    with patch("wechat_mcp.safety.write_reply", return_value="written"):
+                        with patch("wechat_mcp.safety.press_enter_to_send", return_value="sent") as enter_mock:
+                            result = auto_send_message("File Transfer", "hello", confirm=False)
+
+        self.assertTrue(result["sent"])
+        self.assertEqual(result["send_result"], "sent")
+        enter_mock.assert_called_once_with()
+
     def test_send_current_chat_sends_without_focus_search(self):
         with tempfile.TemporaryDirectory() as tmp:
             with patch.dict("os.environ", {"WECHAT_MCP_DATA_DIR": tmp, "WECHAT_SEND_REQUIRES_CONFIRM": "true"}):
