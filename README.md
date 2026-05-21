@@ -98,6 +98,8 @@ Use safe_send_current_chat_with_vision to send exactly this text to the currentl
 
 Requests from the web UI go through `Agent SDK + MCP`, so workflow traces appear in the OpenAI Dashboard Agent Traces page. Visual step screenshots are still saved locally under `.data/runs/<run_id>/`.
 
+The web UI keeps a `conversation_id` in browser local storage and stores recent web turns under `.data/web_conversations/`. Click `New Chat` to start a fresh conversation id.
+
 ## MCP Tools
 
 - `capture_wechat_window(output_path: str | None = None)`

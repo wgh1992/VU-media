@@ -1,8 +1,11 @@
 from __future__ import annotations
 
 import argparse
+import json
 from dataclasses import asdict
-from typing import Literal
+from pathlib import Path
+from typing import Any, Literal
+from uuid import uuid4
 
 import uvicorn
 from fastapi import FastAPI, HTTPException
@@ -11,6 +14,7 @@ from pydantic import BaseModel, Field
 
 from .agent_sdk import run_wechat_agent
 from .config import get_settings
+from .store import utc_now_iso
 
 
 Mode = Literal["daily", "assist", "send"]
@@ -20,14 +24,76 @@ class ChatRequest(BaseModel):
     message: str = Field(min_length=1, max_length=4000)
     mode: Mode = "assist"
     max_turns: int = Field(default=6, ge=1, le=12)
+    conversation_id: str | None = Field(default=None, max_length=80)
 
 
 class ChatResponse(BaseModel):
     output: str
     mode: Mode
+    conversation_id: str
 
 
 app = FastAPI(title="WeChat MCP Web Chat")
+
+
+class WebConversationStore:
+    def __init__(self, data_dir: str | Path | None = None):
+        settings = get_settings()
+        self.root = Path(data_dir or settings.data_dir).resolve() / "web_conversations"
+        self.root.mkdir(parents=True, exist_ok=True)
+
+    def normalize_id(self, conversation_id: str | None) -> str:
+        value = (conversation_id or "").strip()
+        if not value:
+            return f"web-{uuid4().hex[:16]}"
+        safe = "".join(ch for ch in value if ch.isalnum() or ch in {"-", "_"})
+        return safe[:80] or f"web-{uuid4().hex[:16]}"
+
+    def path_for(self, conversation_id: str) -> Path:
+        return self.root / f"{conversation_id}.jsonl"
+
+    def append(self, conversation_id: str, role: str, content: str, mode: Mode | None = None) -> dict[str, Any]:
+        event = {
+            "timestamp": utc_now_iso(),
+            "conversation_id": conversation_id,
+            "role": role,
+            "mode": mode,
+            "content": content,
+        }
+        with self.path_for(conversation_id).open("a", encoding="utf-8") as f:
+            f.write(json.dumps(event, ensure_ascii=False) + "\n")
+        return event
+
+    def recent(self, conversation_id: str, limit: int = 16) -> list[dict[str, Any]]:
+        path = self.path_for(conversation_id)
+        if not path.exists():
+            return []
+        events = []
+        for line in path.read_text(encoding="utf-8").splitlines()[-limit:]:
+            try:
+                events.append(json.loads(line))
+            except json.JSONDecodeError:
+                continue
+        return events
+
+
+def _prompt_with_context(message: str, history: list[dict[str, Any]]) -> str:
+    if not history:
+        return message
+
+    compact_history = [
+        {
+            "role": event.get("role"),
+            "content": str(event.get("content", ""))[:1200],
+        }
+        for event in history
+        if event.get("role") in {"user", "assistant"}
+    ]
+    return (
+        "Continue this web chat conversation. Use the prior turns as context, but follow the latest user request.\n\n"
+        f"Prior turns JSON:\n{json.dumps(compact_history, ensure_ascii=False)}\n\n"
+        f"Latest user request:\n{message}"
+    )
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -53,12 +119,21 @@ async def chat(request: ChatRequest) -> ChatResponse:
     if not prompt:
         raise HTTPException(status_code=400, detail="message is required")
 
+    store = WebConversationStore()
+    conversation_id = store.normalize_id(request.conversation_id)
+    history = store.recent(conversation_id)
+    agent_prompt = _prompt_with_context(prompt, history)
+    store.append(conversation_id, "user", prompt, request.mode)
+
     try:
-        result = await run_wechat_agent(prompt, mode=request.mode, max_turns=request.max_turns)
+        result = await run_wechat_agent(agent_prompt, mode=request.mode, max_turns=request.max_turns)
     except Exception as exc:
+        store.append(conversation_id, "assistant", f"ERROR: {exc}", request.mode)
         raise HTTPException(status_code=500, detail=str(exc)) from exc
 
-    return ChatResponse(output=str(result.final_output), mode=request.mode)
+    output = str(result.final_output)
+    store.append(conversation_id, "assistant", output, request.mode)
+    return ChatResponse(output=output, mode=request.mode, conversation_id=conversation_id)
 
 
 def main() -> None:
@@ -137,6 +212,18 @@ HTML = """
       color: var(--muted);
       font-size: 13px;
       white-space: nowrap;
+    }
+    .secondary {
+      background: #eef2ff;
+      color: #1f2937;
+      border: 1px solid #c7d2fe;
+    }
+    .secondary:hover { background: #dbeafe; }
+    .conversation {
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 3px;
+      overflow-wrap: anywhere;
     }
     main {
       width: min(1040px, 100%);
@@ -242,6 +329,7 @@ HTML = """
       <div>
         <h1>WeChat MCP Chat</h1>
         <div class="status" id="status">Checking local server...</div>
+        <div class="conversation" id="conversation">Conversation: new</div>
       </div>
       <div class="toolbar">
         <label>
@@ -256,6 +344,7 @@ HTML = """
           Turns
           <input id="turns" type="number" min="1" max="12" value="6" />
         </label>
+        <button class="secondary" id="new-chat" type="button">New Chat</button>
       </div>
     </header>
     <main>
@@ -283,6 +372,9 @@ HTML = """
     const turns = document.getElementById('turns');
     const statusEl = document.getElementById('status');
     const hint = document.getElementById('hint');
+    const conversationEl = document.getElementById('conversation');
+    const newChat = document.getElementById('new-chat');
+    let conversationId = localStorage.getItem('wechat_mcp_conversation_id') || '';
 
     function escapeHtml(value) {
       return value.replace(/[&<>"']/g, ch => ({
@@ -309,6 +401,17 @@ HTML = """
         hint.textContent = 'daily mode 只做低风险检查，不会读取单个聊天详情或发送消息。';
       } else {
         hint.textContent = 'assist mode 可读取、总结、写草稿，但不会发送消息。';
+      }
+    }
+
+    function setConversationId(value) {
+      conversationId = value || '';
+      if (conversationId) {
+        localStorage.setItem('wechat_mcp_conversation_id', conversationId);
+        conversationEl.textContent = `Conversation: ${conversationId}`;
+      } else {
+        localStorage.removeItem('wechat_mcp_conversation_id');
+        conversationEl.textContent = 'Conversation: new';
       }
     }
 
@@ -341,13 +444,15 @@ HTML = """
           body: JSON.stringify({
             message: text,
             mode: mode.value,
-            max_turns: Number(turns.value || 6)
+            max_turns: Number(turns.value || 6),
+            conversation_id: conversationId || null
           })
         });
         const data = await res.json();
         if (!res.ok) {
           throw new Error(data.detail || `HTTP ${res.status}`);
         }
+        setConversationId(data.conversation_id);
         addMessage('assistant', data.output);
       } catch (err) {
         addMessage('assistant', String(err.message || err), 'error');
@@ -365,7 +470,14 @@ HTML = """
     });
 
     mode.addEventListener('change', refreshHint);
+    newChat.addEventListener('click', () => {
+      setConversationId('');
+      messages.innerHTML = '';
+      addMessage('assistant', '已开启新对话。下一条消息会创建新的 conversation id。');
+      input.focus();
+    });
     refreshHint();
+    setConversationId(conversationId);
     loadHealth();
   </script>
 </body>
