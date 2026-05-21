@@ -1,7 +1,7 @@
 [project]
 name = "wechat-mcp"
 version = "0.1.0"
-description = "A minimal Windows MCP server for assistive WeChat desktop automation."
+description = "A minimal Windows MCP server for WeChat desktop automation."
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [

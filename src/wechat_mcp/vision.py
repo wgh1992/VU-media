@@ -109,7 +109,7 @@ def summarize_chat(chat_text: str, instruction: str | None = None) -> str:
         input=[
             {
                 "role": "system",
-                "content": "You summarize chat context for a local assistive WeChat agent.",
+                "content": "You summarize chat context for a local WeChat agent.",
             },
             {
                 "role": "user",

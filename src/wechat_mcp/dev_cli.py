@@ -51,11 +51,11 @@ def main() -> None:
     subparsers.add_parser("list-windows", help="List visible top-level Windows windows.")
 
     agent_tools_parser = subparsers.add_parser("agent-tools", help="List MCP tools visible to the Agent SDK wrapper.")
-    agent_tools_parser.add_argument("--mode", default="daily", choices=["daily", "assist", "send"])
+    agent_tools_parser.add_argument("--mode", default="daily", choices=["daily", "send"])
 
     agent_run_parser = subparsers.add_parser("agent-run", help="Run an Agent SDK prompt through the local MCP server.")
     agent_run_parser.add_argument("prompt", nargs="?", default="Please run one WeChat daily check.")
-    agent_run_parser.add_argument("--mode", default="daily", choices=["daily", "assist", "send"])
+    agent_run_parser.add_argument("--mode", default="daily", choices=["daily", "send"])
     agent_run_parser.add_argument("--max-turns", type=int, default=6)
 
     daily_parser = subparsers.add_parser("daily-check", help="Run one low-risk daily WeChat check.")

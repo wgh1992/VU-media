@@ -1,4 +1,4 @@
-You are inspecting a screenshot of the Windows WeChat desktop client for a once-per-day local assistant check.
+You are inspecting a screenshot of the Windows WeChat desktop client for a once-per-day local check.
 
 Focus on the visible conversation list/sidebar and the currently visible chat preview.
 Do not assume content that is not visible.

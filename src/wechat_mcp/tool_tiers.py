@@ -8,7 +8,7 @@ DAILY_CHECK_TOOLS = [
     "recent_conversation_events",
 ]
 
-ASSISTIVE_TOOLS = [
+SEND_BASE_TOOLS = [
     *DAILY_CHECK_TOOLS,
     "capture_wechat_window",
     "analyze_screenshot",
@@ -22,7 +22,7 @@ ASSISTIVE_TOOLS = [
 ]
 
 SEND_TOOLS = [
-    *ASSISTIVE_TOOLS,
+    *SEND_BASE_TOOLS,
     "send_message_confirmed",
     "auto_send_message",
     "send_current_chat_message",
@@ -34,8 +34,6 @@ def allowed_tools_for_mode(mode: str) -> list[str]:
     normalized = mode.strip().lower()
     if normalized in {"daily", "daily_check", "monitor"}:
         return DAILY_CHECK_TOOLS
-    if normalized in {"assist", "assistant", "assistive", "chat"}:
-        return ASSISTIVE_TOOLS
     if normalized in {"send", "full"}:
         return SEND_TOOLS
     return DAILY_CHECK_TOOLS

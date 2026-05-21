@@ -96,7 +96,7 @@ class WebTests(unittest.TestCase):
         client = TestClient(app)
         response = client.post(
             "/api/chat",
-            json={"message": "hello", "mode": "assist", "max_turns": 3},
+            json={"message": "hello", "mode": "chat", "max_turns": 3},
         )
 
         self.assertEqual(response.status_code, 422)

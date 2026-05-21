@@ -24,8 +24,8 @@ Return a concise Chinese report with the saved report path when available.
 """.strip()
 
 
-ASSISTIVE_INSTRUCTIONS = """
-You are a local assistive WeChat desktop agent.
+SEND_INSTRUCTIONS = """
+You are a local WeChat desktop agent.
 You may inspect visible WeChat state, focus chats, read current chat screenshots, summarize, and draft or write replies.
 Never send a message unless the user explicitly asks for sending.
 Prefer write_reply over send_message_confirmed.
@@ -38,8 +38,8 @@ Return concise Chinese output.
 
 def instructions_for_mode(mode: str) -> str:
     normalized = mode.strip().lower()
-    if normalized in {"assist", "assistant", "assistive", "chat", "send", "full"}:
-        return ASSISTIVE_INSTRUCTIONS
+    if normalized in {"send", "full"}:
+        return SEND_INSTRUCTIONS
     return DAILY_INSTRUCTIONS
 
 
@@ -77,7 +77,7 @@ async def _amain() -> None:
         description="Run the WeChat Agent SDK wrapper using the local WeChat MCP server.",
     )
     parser.add_argument("prompt", nargs="?", default="Please run one WeChat daily check.")
-    parser.add_argument("--mode", default="daily", choices=["daily", "assist", "send"])
+    parser.add_argument("--mode", default="daily", choices=["daily", "send"])
     parser.add_argument("--list-tools", action="store_true")
     parser.add_argument("--max-turns", type=int, default=6)
     args = parser.parse_args()

@@ -1,6 +1,6 @@
 # WeChat MCP
 
-Minimal Windows MCP server for assistive WeChat desktop automation.
+Minimal Windows MCP server for WeChat desktop automation.
 
 This project intentionally controls the official Windows desktop client through window focus, screenshots, clipboard paste, and optional UI automation. It does not use private WeChat protocols, local database reads, DLL injection, or client reverse engineering.
 
@@ -166,7 +166,7 @@ Keep WeChat logged in before the scheduled time. The first version only inspects
 This project also includes an Agent SDK wrapper inspired by the NestWeb MCP layout:
 
 - `mcp_adapter.py`: starts this MCP server as a stdio subprocess for the Agent SDK.
-- `tool_tiers.py`: controls which MCP tools are visible in `daily`, `assist`, and `send` modes.
+- `tool_tiers.py`: controls which MCP tools are visible in `daily` and `send` modes.
 - `agent_sdk.py`: builds and runs the Agent SDK agent.
 - `output_schemas.py`: shared schema definitions for future structured tool outputs.
 
