@@ -182,7 +182,7 @@ def click_visible_voice_to_text(index: int = 1) -> str:
     for control in window.descendants():
         try:
             text = (control.window_text() or "").strip().lower()
-            if "convert to text" not in text and "转文字" not in text:
+            if not any(label in text for label in ("convert to text", "转文字", "转换为文字", "语音转文字")):
                 continue
             rect = control.rectangle()
             if rect.right <= rect.left or rect.bottom <= rect.top:
@@ -192,7 +192,7 @@ def click_visible_voice_to_text(index: int = 1) -> str:
             continue
 
     if not candidates:
-        raise RuntimeError("Could not find a visible voice 'Convert to text' button in the current WeChat chat.")
+        raise RuntimeError("Could not find a visible voice 'Convert to text' / '转文字' button in the current WeChat chat.")
 
     candidates.sort(key=lambda item: (item[0], item[1]))
     if index > len(candidates):
@@ -204,7 +204,7 @@ def click_visible_voice_to_text(index: int = 1) -> str:
     except Exception:
         click(button="left", coords=(rect.left + rect.width() // 2, rect.top + rect.height() // 2))
     time.sleep(1.0)
-    return f"Clicked visible voice Convert to text button #{index}."
+    return f"Clicked visible voice Convert to text / 转文字 button #{index}."
 
 
 def focus_chat(chat_name: str) -> str:

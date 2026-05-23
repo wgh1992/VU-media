@@ -8,10 +8,16 @@ from unittest.mock import patch
 from PIL import Image
 
 from wechat_mcp.voice import convert_visible_voice_to_text
+from wechat_mcp.voice import LOCATE_VOICE_CONVERT_PROMPT
 from wechat_mcp.voice import _locate_voice_convert_by_red_dot
 
 
 class VoiceTests(unittest.TestCase):
+    def test_voice_locator_prompt_supports_chinese_labels(self):
+        self.assertIn("转文字", LOCATE_VOICE_CONVERT_PROMPT)
+        self.assertIn("转换为文字", LOCATE_VOICE_CONVERT_PROMPT)
+        self.assertIn("语音转文字", LOCATE_VOICE_CONVERT_PROMPT)
+
     def test_convert_visible_voice_to_text_clicks_and_reads_screenshot(self):
         with tempfile.TemporaryDirectory() as tmp:
             source = Path(tmp) / "source.png"

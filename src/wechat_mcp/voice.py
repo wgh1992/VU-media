@@ -13,7 +13,7 @@ from .wechat import capture_wechat_window, click_visible_voice_to_text, click_we
 
 
 DEFAULT_VOICE_TEXT_PROMPT = """
-Inspect this WeChat screenshot after clicking a voice message "Convert to text" button.
+Inspect this WeChat screenshot after clicking a voice message "Convert to text" / "转文字" button.
 Return JSON only with:
 - current_chat: string|null
 - converted_voice_text: string|null
@@ -25,17 +25,18 @@ Do not invent text.
 
 
 LOCATE_VOICE_CONVERT_PROMPT = """
-Inspect this WeChat screenshot and locate the visible voice message "Convert to text" button.
+Inspect this WeChat screenshot and locate the visible voice message text-conversion button.
+The button label may be English or Chinese, such as "Convert to text", "转文字", "转换为文字", or "语音转文字".
 Return JSON only with:
 - found: boolean
-- x_px: number|null, center x pixel of the gray rounded "Convert to text" button in the screenshot
-- y_px: number|null, center y pixel of the gray rounded "Convert to text" button in the screenshot
+- x_px: number|null, center x pixel of the gray rounded conversion button in the screenshot
+- y_px: number|null, center y pixel of the gray rounded conversion button in the screenshot
 - x_ratio: number|null, center x of the button divided by screenshot width
 - y_ratio: number|null, center y of the button divided by screenshot height
 - reason: string|null
-If there are multiple visible Convert to text buttons, choose the one requested by index in reading order from top to bottom.
-Click the center of the gray rounded "Convert to text" pill itself, not the red dot, not the voice bubble, and not the translated text below it.
-The y coordinate should align with the vertical center of the "Convert to text" label.
+If there are multiple visible conversion buttons, choose the one requested by index in reading order from top to bottom.
+Click the center of the gray rounded conversion pill itself, not the red dot, not the voice bubble, and not the translated text below it.
+The y coordinate should align with the vertical center of the conversion label.
 Do not choose browser UI, taskbar UI, or non-WeChat controls.
 """.strip()
 
@@ -106,7 +107,7 @@ def _click_visible_voice_to_text_with_vision(index: int) -> str:
     if red_dot_location:
         x_ratio, y_ratio = red_dot_location
         click_result = click_wechat_normalized(x_ratio, y_ratio)
-        return f"{click_result} Located Convert to text button from voice red-dot anchor."
+        return f"{click_result} Located Convert to text / 转文字 button from voice red-dot anchor."
 
     with Image.open(image_path) as image:
         width, height = image.size
@@ -116,7 +117,7 @@ def _click_visible_voice_to_text_with_vision(index: int) -> str:
     )
     result = _parse_json_object(raw)
     if not result.get("found"):
-        raise RuntimeError(f"Could not visually locate a voice Convert to text button. {result.get('reason') or raw[:300]}")
+        raise RuntimeError(f"Could not visually locate a voice Convert to text / 转文字 button. {result.get('reason') or raw[:300]}")
 
     x_px = result.get("x_px")
     y_px = result.get("y_px")

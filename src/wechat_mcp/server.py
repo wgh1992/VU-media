@@ -120,7 +120,7 @@ def read_current_chat_history(scroll_pages: int = 3, scroll_notches: int = 5) ->
 
 @mcp.tool()
 def convert_visible_voice_to_text(index: int = 1) -> dict:
-    """Click a visible WeChat voice message Convert to text button and visually read the converted text."""
+    """Click a visible WeChat voice message Convert to text / 转文字 button and visually read the converted text."""
     return run_convert_visible_voice_to_text(index)
 
 

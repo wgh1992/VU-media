@@ -206,7 +206,7 @@ Read older visible chat history by scrolling upward:
 python -m wechat_mcp.dev_cli read-history --pages 5 --notches 5
 ```
 
-Convert a visible WeChat voice bubble by clicking its `Convert to text` button, then visually reading the result:
+Convert a visible WeChat voice bubble by clicking its `Convert to text` / `转文字` button, then visually reading the result:
 
 ```powershell
 python -m wechat_mcp.dev_cli voice-to-text --index 1

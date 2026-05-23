@@ -79,7 +79,7 @@ def main() -> None:
     read_history_parser.add_argument("--pages", type=int, default=3)
     read_history_parser.add_argument("--notches", type=int, default=5)
 
-    voice_parser = subparsers.add_parser("voice-to-text", help="Click a visible WeChat voice Convert to text button.")
+    voice_parser = subparsers.add_parser("voice-to-text", help="Click a visible WeChat voice Convert to text / 转文字 button.")
     voice_parser.add_argument("--index", type=int, default=1)
 
     read_store_parser = subparsers.add_parser("read-store", help="Read current chat and store the event.")
