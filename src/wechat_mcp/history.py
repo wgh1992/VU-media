@@ -5,7 +5,7 @@ from typing import Any
 from .prompts import PromptManager
 from .store import ConversationStore
 from .vision import analyze_screenshot
-from .wechat import capture_wechat_chat_pane, scroll_current_chat_history, scroll_current_chat_to_bottom
+from .wechat import close_transient_overlays, capture_wechat_chat_pane, scroll_current_chat_history, scroll_current_chat_to_bottom
 
 
 DEFAULT_HISTORY_PROMPT = """
@@ -25,16 +25,16 @@ Do not invent text. If text is unclear, say so in uncertainty.
 
 def read_current_chat_history(
     scroll_pages: int = 3,
-    scroll_notches: int = 18,
-    scroll_delay_seconds: float = 0.05,
+    scroll_notches: int = 36,
+    scroll_delay_seconds: float = 0.02,
     settle_to_bottom: bool = True,
-    bottom_scroll_notches: int = 60,
-    settle_delay_seconds: float = 0.2,
+    bottom_scroll_notches: int = 120,
+    settle_delay_seconds: float = 0.15,
 ) -> dict[str, Any]:
     pages = max(1, min(int(scroll_pages), 10))
-    notches = max(1, min(int(scroll_notches), 30))
+    notches = max(1, min(int(scroll_notches), 80))
     delay = max(0.0, min(float(scroll_delay_seconds), 1.0))
-    bottom_notches = max(1, min(int(bottom_scroll_notches), 120))
+    bottom_notches = max(1, min(int(bottom_scroll_notches), 240))
     settle_delay = max(0.0, min(float(settle_delay_seconds), 2.0))
     prompt = PromptManager().get("read_chat_history_page", DEFAULT_HISTORY_PROMPT)
     store = ConversationStore()
@@ -42,6 +42,7 @@ def read_current_chat_history(
     results = []
 
     if settle_to_bottom:
+        close_transient_overlays()
         scroll_current_chat_to_bottom(bottom_notches, settle_delay)
 
     for index in range(pages):

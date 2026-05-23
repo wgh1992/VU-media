@@ -102,11 +102,11 @@ def focus_chat(chat_name: str) -> str:
 @mcp.tool()
 def read_current_chat(
     scroll_pages: int = 1,
-    scroll_notches: int = 18,
-    scroll_delay_seconds: float = 0.05,
+    scroll_notches: int = 36,
+    scroll_delay_seconds: float = 0.02,
     settle_to_bottom: bool = True,
-    bottom_scroll_notches: int = 60,
-    settle_delay_seconds: float = 0.2,
+    bottom_scroll_notches: int = 120,
+    settle_delay_seconds: float = 0.15,
 ) -> dict:
     """Read the current WeChat chat. By default, first scroll to the newest message at the bottom, wait, then read. Use scroll_pages > 1 to scroll upward for history."""
     return run_read_current_chat_history(
@@ -121,11 +121,11 @@ def read_current_chat(
 
 def read_current_chat_history(
     scroll_pages: int = 3,
-    scroll_notches: int = 18,
-    scroll_delay_seconds: float = 0.05,
+    scroll_notches: int = 36,
+    scroll_delay_seconds: float = 0.02,
     settle_to_bottom: bool = True,
-    bottom_scroll_notches: int = 60,
-    settle_delay_seconds: float = 0.2,
+    bottom_scroll_notches: int = 120,
+    settle_delay_seconds: float = 0.15,
 ) -> dict:
     """Deprecated internal alias. Use read_current_chat(scroll_pages, scroll_notches)."""
     return run_read_current_chat_history(

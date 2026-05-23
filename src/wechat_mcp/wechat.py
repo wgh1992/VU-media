@@ -164,34 +164,32 @@ def click_current_chat_input() -> str:
     return f"Clicked current chat input area at ({x}, {y})."
 
 
-def scroll_current_chat_history(notches: int = 18, delay_seconds: float = 0.05) -> str:
+def scroll_current_chat_history(notches: int = 36, delay_seconds: float = 0.02) -> str:
     bounds = get_wechat_bounds()
-    x = bounds.left + int(bounds.width * 0.70)
-    y = bounds.top + int(bounds.height * 0.45)
+    x = bounds.left + int(bounds.width * 0.92)
+    y = bounds.top + int(bounds.height * 0.55)
     total = abs(int(notches))
-    click(button="left", coords=(x, y))
     remaining = total
     while remaining > 0:
-        step = min(remaining, 10)
+        step = min(remaining, 20)
         scroll(wheel_dist=step, coords=(x, y))
         remaining -= step
     time.sleep(max(0.0, float(delay_seconds)))
-    return f"Scrolled current chat history up by {total} notches in chunks at ({x}, {y}) with {max(0.0, float(delay_seconds)):.2f}s delay."
+    return f"Scrolled current chat history up by {total} notches without clicking message content at ({x}, {y}) with {max(0.0, float(delay_seconds)):.2f}s delay."
 
 
-def scroll_current_chat_to_bottom(notches: int = 60, delay_seconds: float = 0.2) -> str:
+def scroll_current_chat_to_bottom(notches: int = 120, delay_seconds: float = 0.15) -> str:
     bounds = get_wechat_bounds()
-    x = bounds.left + int(bounds.width * 0.70)
-    y = bounds.top + int(bounds.height * 0.45)
+    x = bounds.left + int(bounds.width * 0.92)
+    y = bounds.top + int(bounds.height * 0.55)
     total = abs(int(notches))
-    click(button="left", coords=(x, y))
     remaining = total
     while remaining > 0:
-        step = min(remaining, 10)
+        step = min(remaining, 20)
         scroll(wheel_dist=-step, coords=(x, y))
         remaining -= step
     time.sleep(max(0.0, float(delay_seconds)))
-    return f"Scrolled current chat to bottom by {total} notches in chunks at ({x}, {y}) with {max(0.0, float(delay_seconds)):.2f}s delay."
+    return f"Scrolled current chat to bottom by {total} notches without clicking message content at ({x}, {y}) with {max(0.0, float(delay_seconds)):.2f}s delay."
 
 
 def click_wechat_normalized(x_ratio: float, y_ratio: float) -> str:
