@@ -152,12 +152,12 @@ def click_current_chat_input() -> str:
     return f"Clicked current chat input area at ({x}, {y})."
 
 
-def scroll_current_chat_history(notches: int = 5) -> str:
+def scroll_current_chat_history(notches: int = 9, delay_seconds: float = 0.12) -> str:
     bounds = get_wechat_bounds()
     x = bounds.left + int(bounds.width * 0.70)
     y = bounds.top + int(bounds.height * 0.45)
     scroll(wheel_dist=abs(int(notches)), coords=(x, y))
-    time.sleep(0.5)
+    time.sleep(max(0.0, float(delay_seconds)))
     return f"Scrolled current chat history up by {abs(int(notches))} notches at ({x}, {y})."
 
 

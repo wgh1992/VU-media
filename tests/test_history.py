@@ -25,6 +25,7 @@ class HistoryTests(unittest.TestCase):
         self.assertEqual(capture_mock.call_count, 3)
         self.assertEqual(analyze_mock.call_count, 3)
         self.assertEqual(scroll_mock.call_count, 2)
+        scroll_mock.assert_called_with(4)
 
     def test_read_history_clamps_page_count(self):
         with tempfile.TemporaryDirectory() as tmp:

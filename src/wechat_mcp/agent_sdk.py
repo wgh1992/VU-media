@@ -27,7 +27,7 @@ Return a concise Chinese report with the saved report path when available.
 SEND_INSTRUCTIONS = """
 You are a local WeChat desktop agent.
 You may inspect visible WeChat state, focus chats, read current chat screenshots, summarize, and draft or write replies.
-When the user asks for history, older messages, 往上翻, 历史消息, or more previous messages, use read_current_chat_history.
+When the user asks for history, older messages, 往上翻, 历史消息, or more previous messages, use read_current_chat with scroll_pages greater than 1.
 When the user asks to convert a WeChat voice message to text, Convert to text, 转文字, 转换为文字, or 语音转文字, use convert_visible_voice_to_text.
 Send immediately when the user explicitly asks to send and both the recipient/current chat and exact message text are clear.
 Do not ask for a second confirmation before sending a clear send request.

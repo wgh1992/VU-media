@@ -21,15 +21,21 @@ Do not invent text. If text is unclear, say so in uncertainty.
 """.strip()
 
 
-def read_current_chat_history(scroll_pages: int = 3, scroll_notches: int = 5) -> dict[str, Any]:
+def read_current_chat_history(scroll_pages: int = 3, scroll_notches: int = 9) -> dict[str, Any]:
     pages = max(1, min(int(scroll_pages), 10))
     notches = max(1, min(int(scroll_notches), 12))
     prompt = PromptManager().get("read_chat_history_page", DEFAULT_HISTORY_PROMPT)
     store = ConversationStore()
+    captures = []
     results = []
 
     for index in range(pages):
         image_path = capture_wechat_window()
+        captures.append(image_path)
+        if index < pages - 1:
+            scroll_current_chat_history(notches)
+
+    for index, image_path in enumerate(captures):
         analysis = analyze_screenshot(image_path, prompt)
         stored_image = store.save_screenshot("__current_chat_history__", image_path)
         results.append(
@@ -39,8 +45,6 @@ def read_current_chat_history(scroll_pages: int = 3, scroll_notches: int = 5) ->
                 "analysis": analysis,
             }
         )
-        if index < pages - 1:
-            scroll_current_chat_history(notches)
 
     event = store.append_event(
         "__current_chat_history__",

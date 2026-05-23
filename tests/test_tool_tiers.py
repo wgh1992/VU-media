@@ -22,7 +22,6 @@ class ToolTierTests(unittest.TestCase):
                 "daily_check_once",
                 "focus_chat",
                 "read_current_chat",
-                "read_current_chat_history",
                 "convert_visible_voice_to_text",
                 "auto_send_message",
                 "safe_send_current_chat_with_vision",

@@ -100,21 +100,13 @@ def focus_chat(chat_name: str) -> str:
 
 
 @mcp.tool()
-def read_current_chat() -> str:
-    """Capture and visually summarize the current WeChat chat."""
-    path = capture_window()
-    return analyze_image(
-        path,
-        PromptManager().get(
-            "read_current_chat",
-            "Read the visible WeChat chat. Return JSON only with current_chat, visible_messages, unread_indicators, input_box_visible, uncertainty.",
-        ),
-    )
+def read_current_chat(scroll_pages: int = 1, scroll_notches: int = 9) -> dict:
+    """Read the current WeChat chat. Use scroll_pages > 1 to quickly scroll upward and read history."""
+    return run_read_current_chat_history(scroll_pages, scroll_notches)
 
 
-@mcp.tool()
-def read_current_chat_history(scroll_pages: int = 3, scroll_notches: int = 5) -> dict:
-    """Read visible current chat history, scroll upward across pages, and return per-page visual analyses."""
+def read_current_chat_history(scroll_pages: int = 3, scroll_notches: int = 9) -> dict:
+    """Deprecated internal alias. Use read_current_chat(scroll_pages, scroll_notches)."""
     return run_read_current_chat_history(scroll_pages, scroll_notches)
 
 

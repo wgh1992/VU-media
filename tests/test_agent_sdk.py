@@ -11,7 +11,7 @@ class AgentSdkTests(unittest.TestCase):
 
         self.assertIn("Do not ask for a second confirmation", instructions)
         self.assertIn("Use confirm=false by default", instructions)
-        self.assertIn("use read_current_chat_history", instructions)
+        self.assertIn("use read_current_chat with scroll_pages greater than 1", instructions)
         self.assertIn("use convert_visible_voice_to_text", instructions)
         self.assertIn("转换为文字", instructions)
         self.assertIn("call auto_send_message directly", instructions)

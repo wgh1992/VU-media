@@ -75,9 +75,9 @@ def main() -> None:
 
     subparsers.add_parser("read", help="Capture and analyze the current WeChat chat.")
 
-    read_history_parser = subparsers.add_parser("read-history", help="Read current chat history while scrolling upward.")
+    read_history_parser = subparsers.add_parser("read-history", help="Read current chat via read_current_chat while scrolling upward.")
     read_history_parser.add_argument("--pages", type=int, default=3)
-    read_history_parser.add_argument("--notches", type=int, default=5)
+    read_history_parser.add_argument("--notches", type=int, default=9)
 
     voice_parser = subparsers.add_parser("voice-to-text", help="Click a visible WeChat voice Convert to text / 转文字 button.")
     voice_parser.add_argument("--index", type=int, default=1)
@@ -138,7 +138,7 @@ def main() -> None:
     elif args.command == "focus":
         _print_text(focus_chat(args.chat_name))
     elif args.command == "read":
-        _print_text(read_current_chat())
+        _print_json(read_current_chat())
     elif args.command == "read-history":
         _print_json(read_current_chat_history(args.pages, args.notches))
     elif args.command == "voice-to-text":
