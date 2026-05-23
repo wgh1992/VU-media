@@ -21,6 +21,7 @@ class ToolTierTests(unittest.TestCase):
                 "list_visible_windows",
                 "daily_check_once",
                 "focus_chat",
+                "focus_unread_by_red_dot",
                 "read_current_chat",
                 "convert_visible_voice_to_text",
                 "auto_send_message",

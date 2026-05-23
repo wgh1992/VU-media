@@ -16,6 +16,7 @@ from .server import (
     daily_check_once,
     draft_reply,
     focus_chat,
+    focus_unread_by_red_dot,
     health_check,
     list_visible_windows,
     read_current_chat,
@@ -72,6 +73,9 @@ def main() -> None:
 
     focus_parser = subparsers.add_parser("focus", help="Focus a WeChat chat by name.")
     focus_parser.add_argument("chat_name")
+
+    unread_parser = subparsers.add_parser("focus-unread", help="Focus a visible unread conversation by red dot index.")
+    unread_parser.add_argument("--index", type=int, default=1)
 
     read_parser = subparsers.add_parser("read", help="Scroll to the bottom, then capture and analyze the current WeChat chat.")
     read_parser.add_argument("--no-settle", action="store_true", help="Do not scroll to the newest message before reading.")
@@ -144,6 +148,8 @@ def main() -> None:
         _print_text(analyze_screenshot(args.image_path, args.instruction))
     elif args.command == "focus":
         _print_text(focus_chat(args.chat_name))
+    elif args.command == "focus-unread":
+        _print_json(focus_unread_by_red_dot(args.index))
     elif args.command == "read":
         _print_json(
             read_current_chat(

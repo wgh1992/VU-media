@@ -11,6 +11,7 @@ from .safety import send_current_chat_message as safe_send_current_chat_message
 from .safety import send_message_confirmed as safe_send_message
 from .config import get_settings
 from .store import ConversationStore, text_log_payload
+from .unread import focus_unread_by_red_dot as run_focus_unread_by_red_dot
 from .vision import analyze_screenshot as analyze_image
 from .vision import draft_reply as draft_reply_text
 from .vision import summarize_chat as summarize_chat_text
@@ -97,6 +98,12 @@ def analyze_and_store_screenshot(
 def focus_chat(chat_name: str) -> str:
     """Use WeChat search to focus a chat by name."""
     return focus_wechat_chat(chat_name)
+
+
+@mcp.tool()
+def focus_unread_by_red_dot(index: int = 1) -> dict:
+    """Visually locate unread red dots in the left WeChat conversation list and focus the requested unread conversation."""
+    return run_focus_unread_by_red_dot(index)
 
 
 @mcp.tool()
