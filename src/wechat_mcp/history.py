@@ -25,7 +25,7 @@ Do not invent text. If text is unclear, say so in uncertainty.
 
 def read_current_chat_history(
     scroll_pages: int = 3,
-    scroll_notches: int = 36,
+    scroll_notches: int = 80,
     scroll_delay_seconds: float = 0.02,
     settle_to_bottom: bool = True,
     bottom_scroll_notches: int = 120,
