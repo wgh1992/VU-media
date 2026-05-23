@@ -15,6 +15,7 @@ from .screen import Region, capture_region
 
 
 WECHAT_PROCESS_NAMES = {"weixin.exe", "wechat.exe", "wechatappex.exe"}
+WECHAT_MAIN_TITLES = {"weixin", "wechat", "微信"}
 
 
 @dataclass(frozen=True)
@@ -58,17 +59,28 @@ def _restore_wechat_process_windows() -> None:
     if not wechat_pids:
         return
 
+    restored = False
+
     def enum_callback(hwnd, _extra):
+        nonlocal restored
+        if restored:
+            return True
         try:
             _, pid = win32process.GetWindowThreadProcessId(hwnd)
             if pid not in wechat_pids:
                 return True
             title = win32gui.GetWindowText(hwnd)
             class_name = win32gui.GetClassName(hwnd)
-            if not title and not class_name:
+            if title.strip().lower() not in WECHAT_MAIN_TITLES:
+                return True
+            if not class_name.startswith("Qt") or "TrayIcon" in class_name:
+                return True
+            left, top, right, bottom = win32gui.GetWindowRect(hwnd)
+            if right - left <= 0 or bottom - top <= 0:
                 return True
             win32gui.ShowWindow(hwnd, win32con.SW_RESTORE)
             win32gui.SetForegroundWindow(hwnd)
+            restored = True
         except Exception:
             pass
         return True
@@ -79,9 +91,7 @@ def _restore_wechat_process_windows() -> None:
         return
 
 
-def _find_wechat_window():
-    _restore_wechat_process_windows()
-    time.sleep(0.2)
+def _find_wechat_window(allow_restore: bool = True):
     settings = get_settings()
     title_pattern = re.compile(settings.wechat_window_title_regex, re.IGNORECASE)
     class_pattern = (
@@ -122,6 +132,10 @@ def _find_wechat_window():
         candidates.sort(key=lambda item: item[0], reverse=True)
         if candidates[0][0] > 0:
             return candidates[0][1]
+    if allow_restore:
+        _restore_wechat_process_windows()
+        time.sleep(0.5)
+        return _find_wechat_window(allow_restore=False)
     raise RuntimeError("Could not find a visible WeChat window. Open and log in to WeChat first.")
 
 
