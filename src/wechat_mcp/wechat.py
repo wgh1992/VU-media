@@ -161,6 +161,52 @@ def scroll_current_chat_history(notches: int = 5) -> str:
     return f"Scrolled current chat history up by {abs(int(notches))} notches at ({x}, {y})."
 
 
+def click_wechat_normalized(x_ratio: float, y_ratio: float) -> str:
+    if not 0 <= x_ratio <= 1 or not 0 <= y_ratio <= 1:
+        raise ValueError("x_ratio and y_ratio must be between 0 and 1.")
+
+    bounds = get_wechat_bounds()
+    x = bounds.left + int(bounds.width * x_ratio)
+    y = bounds.top + int(bounds.height * y_ratio)
+    click(button="left", coords=(x, y))
+    time.sleep(1.0)
+    return f"Clicked WeChat normalized coordinate ({x_ratio:.3f}, {y_ratio:.3f}) at ({x}, {y})."
+
+
+def click_visible_voice_to_text(index: int = 1) -> str:
+    if index < 1:
+        raise ValueError("index must be >= 1.")
+
+    window = focus_wechat()
+    candidates = []
+    for control in window.descendants():
+        try:
+            text = (control.window_text() or "").strip().lower()
+            if "convert to text" not in text and "转文字" not in text:
+                continue
+            rect = control.rectangle()
+            if rect.right <= rect.left or rect.bottom <= rect.top:
+                continue
+            candidates.append((rect.top, rect.left, control, rect))
+        except Exception:
+            continue
+
+    if not candidates:
+        raise RuntimeError("Could not find a visible voice 'Convert to text' button in the current WeChat chat.")
+
+    candidates.sort(key=lambda item: (item[0], item[1]))
+    if index > len(candidates):
+        raise RuntimeError(f"Only found {len(candidates)} visible voice convert buttons; requested index {index}.")
+
+    _, _, control, rect = candidates[index - 1]
+    try:
+        control.click_input()
+    except Exception:
+        click(button="left", coords=(rect.left + rect.width() // 2, rect.top + rect.height() // 2))
+    time.sleep(1.0)
+    return f"Clicked visible voice Convert to text button #{index}."
+
+
 def focus_chat(chat_name: str) -> str:
     if not chat_name.strip():
         raise ValueError("chat_name is required.")

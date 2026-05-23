@@ -14,6 +14,7 @@ from .store import ConversationStore, text_log_payload
 from .vision import analyze_screenshot as analyze_image
 from .vision import draft_reply as draft_reply_text
 from .vision import summarize_chat as summarize_chat_text
+from .voice import convert_visible_voice_to_text as run_convert_visible_voice_to_text
 from .visual_agent import safe_send_current_chat_with_vision as visual_safe_send_current
 from .wechat import capture_wechat_window as capture_window
 from .wechat import focus_chat as focus_wechat_chat
@@ -115,6 +116,12 @@ def read_current_chat() -> str:
 def read_current_chat_history(scroll_pages: int = 3, scroll_notches: int = 5) -> dict:
     """Read visible current chat history, scroll upward across pages, and return per-page visual analyses."""
     return run_read_current_chat_history(scroll_pages, scroll_notches)
+
+
+@mcp.tool()
+def convert_visible_voice_to_text(index: int = 1) -> dict:
+    """Click a visible WeChat voice message Convert to text button and visually read the converted text."""
+    return run_convert_visible_voice_to_text(index)
 
 
 @mcp.tool()

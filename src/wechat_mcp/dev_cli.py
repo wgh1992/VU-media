@@ -12,6 +12,7 @@ from .server import (
     analyze_screenshot,
     auto_send_message,
     capture_wechat_window,
+    convert_visible_voice_to_text,
     daily_check_once,
     draft_reply,
     focus_chat,
@@ -78,6 +79,9 @@ def main() -> None:
     read_history_parser.add_argument("--pages", type=int, default=3)
     read_history_parser.add_argument("--notches", type=int, default=5)
 
+    voice_parser = subparsers.add_parser("voice-to-text", help="Click a visible WeChat voice Convert to text button.")
+    voice_parser.add_argument("--index", type=int, default=1)
+
     read_store_parser = subparsers.add_parser("read-store", help="Read current chat and store the event.")
     read_store_parser.add_argument("--contact", default=None)
 
@@ -137,6 +141,8 @@ def main() -> None:
         _print_text(read_current_chat())
     elif args.command == "read-history":
         _print_json(read_current_chat_history(args.pages, args.notches))
+    elif args.command == "voice-to-text":
+        _print_json(convert_visible_voice_to_text(args.index))
     elif args.command == "read-store":
         _print_json(read_current_chat_and_store(args.contact))
     elif args.command == "draft":

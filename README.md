@@ -194,6 +194,7 @@ daily_check_once
 focus_chat
 read_current_chat
 read_current_chat_history
+convert_visible_voice_to_text
 auto_send_message
 safe_send_current_chat_with_vision
 recent_conversation_events
@@ -205,7 +206,17 @@ Read older visible chat history by scrolling upward:
 python -m wechat_mcp.dev_cli read-history --pages 5 --notches 5
 ```
 
-The web chat also includes a `Voice` button. It uses the browser SpeechRecognition API to transcribe speech into the input box before sending.
+Convert a visible WeChat voice bubble by clicking its `Convert to text` button, then visually reading the result:
+
+```powershell
+python -m wechat_mcp.dev_cli voice-to-text --index 1
+```
+
+In the web chat, say something like:
+
+```text
+把当前聊天里第一条语音转文字
+```
 
 ## Sending Messages
 
