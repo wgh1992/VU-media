@@ -100,14 +100,42 @@ def focus_chat(chat_name: str) -> str:
 
 
 @mcp.tool()
-def read_current_chat(scroll_pages: int = 1, scroll_notches: int = 18, scroll_delay_seconds: float = 0.05) -> dict:
-    """Read the current WeChat chat. Use scroll_pages > 1, scroll_notches, and scroll_delay_seconds to quickly scroll upward and read history."""
-    return run_read_current_chat_history(scroll_pages, scroll_notches, scroll_delay_seconds)
+def read_current_chat(
+    scroll_pages: int = 1,
+    scroll_notches: int = 18,
+    scroll_delay_seconds: float = 0.05,
+    settle_to_bottom: bool = True,
+    bottom_scroll_notches: int = 60,
+    settle_delay_seconds: float = 0.2,
+) -> dict:
+    """Read the current WeChat chat. By default, first scroll to the newest message at the bottom, wait, then read. Use scroll_pages > 1 to scroll upward for history."""
+    return run_read_current_chat_history(
+        scroll_pages,
+        scroll_notches,
+        scroll_delay_seconds,
+        settle_to_bottom,
+        bottom_scroll_notches,
+        settle_delay_seconds,
+    )
 
 
-def read_current_chat_history(scroll_pages: int = 3, scroll_notches: int = 18, scroll_delay_seconds: float = 0.05) -> dict:
+def read_current_chat_history(
+    scroll_pages: int = 3,
+    scroll_notches: int = 18,
+    scroll_delay_seconds: float = 0.05,
+    settle_to_bottom: bool = True,
+    bottom_scroll_notches: int = 60,
+    settle_delay_seconds: float = 0.2,
+) -> dict:
     """Deprecated internal alias. Use read_current_chat(scroll_pages, scroll_notches)."""
-    return run_read_current_chat_history(scroll_pages, scroll_notches, scroll_delay_seconds)
+    return run_read_current_chat_history(
+        scroll_pages,
+        scroll_notches,
+        scroll_delay_seconds,
+        settle_to_bottom,
+        bottom_scroll_notches,
+        settle_delay_seconds,
+    )
 
 
 @mcp.tool()

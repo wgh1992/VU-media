@@ -136,6 +136,18 @@ def capture_wechat_window(output_path: str | Path | None = None) -> Path:
     return capture_region(bounds.as_region(), output_path)
 
 
+def capture_wechat_chat_pane(output_path: str | Path | None = None) -> Path:
+    bounds = get_wechat_bounds()
+    left = bounds.left + int(bounds.width * 0.35)
+    region = {
+        "left": left,
+        "top": bounds.top,
+        "width": bounds.right - left,
+        "height": bounds.height,
+    }
+    return capture_region(region, output_path)
+
+
 def close_transient_overlays() -> str:
     focus_wechat()
     send_keys("{ESC}")
@@ -165,6 +177,21 @@ def scroll_current_chat_history(notches: int = 18, delay_seconds: float = 0.05) 
         remaining -= step
     time.sleep(max(0.0, float(delay_seconds)))
     return f"Scrolled current chat history up by {total} notches in chunks at ({x}, {y}) with {max(0.0, float(delay_seconds)):.2f}s delay."
+
+
+def scroll_current_chat_to_bottom(notches: int = 60, delay_seconds: float = 0.2) -> str:
+    bounds = get_wechat_bounds()
+    x = bounds.left + int(bounds.width * 0.70)
+    y = bounds.top + int(bounds.height * 0.45)
+    total = abs(int(notches))
+    click(button="left", coords=(x, y))
+    remaining = total
+    while remaining > 0:
+        step = min(remaining, 10)
+        scroll(wheel_dist=-step, coords=(x, y))
+        remaining -= step
+    time.sleep(max(0.0, float(delay_seconds)))
+    return f"Scrolled current chat to bottom by {total} notches in chunks at ({x}, {y}) with {max(0.0, float(delay_seconds)):.2f}s delay."
 
 
 def click_wechat_normalized(x_ratio: float, y_ratio: float) -> str:
