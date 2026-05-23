@@ -17,7 +17,7 @@ class HistoryTests(unittest.TestCase):
                 with patch("wechat_mcp.history.capture_wechat_window", return_value=source) as capture_mock:
                     with patch("wechat_mcp.history.analyze_screenshot", return_value='{"visible_messages": []}') as analyze_mock:
                         with patch("wechat_mcp.history.scroll_current_chat_history", return_value="scrolled") as scroll_mock:
-                            result = read_current_chat_history(scroll_pages=3, scroll_notches=4)
+                            result = read_current_chat_history(scroll_pages=3, scroll_notches=4, scroll_delay_seconds=0.2)
 
         self.assertEqual(result["scroll_pages"], 3)
         self.assertEqual(result["scroll_notches"], 4)
@@ -25,7 +25,8 @@ class HistoryTests(unittest.TestCase):
         self.assertEqual(capture_mock.call_count, 3)
         self.assertEqual(analyze_mock.call_count, 3)
         self.assertEqual(scroll_mock.call_count, 2)
-        scroll_mock.assert_called_with(4)
+        self.assertEqual(result["scroll_delay_seconds"], 0.2)
+        scroll_mock.assert_called_with(4, 0.2)
 
     def test_read_history_clamps_page_count(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -35,10 +36,11 @@ class HistoryTests(unittest.TestCase):
                 with patch("wechat_mcp.history.capture_wechat_window", return_value=source):
                     with patch("wechat_mcp.history.analyze_screenshot", return_value='{}'):
                         with patch("wechat_mcp.history.scroll_current_chat_history"):
-                            result = read_current_chat_history(scroll_pages=99, scroll_notches=99)
+                            result = read_current_chat_history(scroll_pages=99, scroll_notches=99, scroll_delay_seconds=9)
 
         self.assertEqual(result["scroll_pages"], 10)
-        self.assertEqual(result["scroll_notches"], 12)
+        self.assertEqual(result["scroll_notches"], 30)
+        self.assertEqual(result["scroll_delay_seconds"], 1.0)
 
 
 if __name__ == "__main__":

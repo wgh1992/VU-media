@@ -21,9 +21,14 @@ Do not invent text. If text is unclear, say so in uncertainty.
 """.strip()
 
 
-def read_current_chat_history(scroll_pages: int = 3, scroll_notches: int = 9) -> dict[str, Any]:
+def read_current_chat_history(
+    scroll_pages: int = 3,
+    scroll_notches: int = 18,
+    scroll_delay_seconds: float = 0.05,
+) -> dict[str, Any]:
     pages = max(1, min(int(scroll_pages), 10))
-    notches = max(1, min(int(scroll_notches), 12))
+    notches = max(1, min(int(scroll_notches), 30))
+    delay = max(0.0, min(float(scroll_delay_seconds), 1.0))
     prompt = PromptManager().get("read_chat_history_page", DEFAULT_HISTORY_PROMPT)
     store = ConversationStore()
     captures = []
@@ -33,7 +38,7 @@ def read_current_chat_history(scroll_pages: int = 3, scroll_notches: int = 9) ->
         image_path = capture_wechat_window()
         captures.append(image_path)
         if index < pages - 1:
-            scroll_current_chat_history(notches)
+            scroll_current_chat_history(notches, delay)
 
     for index, image_path in enumerate(captures):
         analysis = analyze_screenshot(image_path, prompt)
@@ -52,12 +57,14 @@ def read_current_chat_history(scroll_pages: int = 3, scroll_notches: int = 9) ->
         {
             "scroll_pages": pages,
             "scroll_notches": notches,
+            "scroll_delay_seconds": delay,
             "pages": results,
         },
     )
     return {
         "scroll_pages": pages,
         "scroll_notches": notches,
+        "scroll_delay_seconds": delay,
         "pages": results,
         "event": event,
     }

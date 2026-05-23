@@ -100,14 +100,14 @@ def focus_chat(chat_name: str) -> str:
 
 
 @mcp.tool()
-def read_current_chat(scroll_pages: int = 1, scroll_notches: int = 9) -> dict:
-    """Read the current WeChat chat. Use scroll_pages > 1 to quickly scroll upward and read history."""
-    return run_read_current_chat_history(scroll_pages, scroll_notches)
+def read_current_chat(scroll_pages: int = 1, scroll_notches: int = 18, scroll_delay_seconds: float = 0.05) -> dict:
+    """Read the current WeChat chat. Use scroll_pages > 1, scroll_notches, and scroll_delay_seconds to quickly scroll upward and read history."""
+    return run_read_current_chat_history(scroll_pages, scroll_notches, scroll_delay_seconds)
 
 
-def read_current_chat_history(scroll_pages: int = 3, scroll_notches: int = 9) -> dict:
+def read_current_chat_history(scroll_pages: int = 3, scroll_notches: int = 18, scroll_delay_seconds: float = 0.05) -> dict:
     """Deprecated internal alias. Use read_current_chat(scroll_pages, scroll_notches)."""
-    return run_read_current_chat_history(scroll_pages, scroll_notches)
+    return run_read_current_chat_history(scroll_pages, scroll_notches, scroll_delay_seconds)
 
 
 @mcp.tool()

@@ -106,7 +106,7 @@ The web UI keeps a `conversation_id` in browser local storage and stores recent 
 - `daily_check_once(note: str | None = None)`
 - `analyze_screenshot(image_path: str, instruction: str | None = None)`
 - `focus_chat(chat_name: str)`
-- `read_current_chat(scroll_pages: int = 1, scroll_notches: int = 9)`
+- `read_current_chat(scroll_pages: int = 1, scroll_notches: int = 18, scroll_delay_seconds: float = 0.05)`
 - `read_current_chat_and_store(contact_name: str | None = None)`
 - `draft_reply(chat_text: str, instruction: str | None = None)`
 - `summarize_chat(chat_text: str, contact_name: str | None = None, instruction: str | None = None)`
@@ -199,10 +199,10 @@ safe_send_current_chat_with_vision
 recent_conversation_events
 ```
 
-Read the current visible chat or older visible history with the same tool. `scroll_pages=1` reads the current page; higher values quickly scroll upward:
+Read the current visible chat or older visible history with the same tool. `scroll_pages=1` reads the current page; higher values quickly scroll upward. The LLM can set `scroll_notches` and `scroll_delay_seconds`; larger notches mean bigger/faster jumps:
 
 ```powershell
-python -m wechat_mcp.dev_cli read-history --pages 5 --notches 5
+python -m wechat_mcp.dev_cli read-history --pages 5 --notches 24 --delay 0.03
 ```
 
 Convert a visible WeChat voice bubble by clicking its `Convert to text` / `转文字` button, then visually reading the result:
