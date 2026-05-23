@@ -18,6 +18,7 @@ from .server import (
     health_check,
     list_visible_windows,
     read_current_chat,
+    read_current_chat_history,
     read_current_chat_and_store,
     recent_conversation_events,
     safe_send_current_chat_with_vision,
@@ -72,6 +73,10 @@ def main() -> None:
     focus_parser.add_argument("chat_name")
 
     subparsers.add_parser("read", help="Capture and analyze the current WeChat chat.")
+
+    read_history_parser = subparsers.add_parser("read-history", help="Read current chat history while scrolling upward.")
+    read_history_parser.add_argument("--pages", type=int, default=3)
+    read_history_parser.add_argument("--notches", type=int, default=5)
 
     read_store_parser = subparsers.add_parser("read-store", help="Read current chat and store the event.")
     read_store_parser.add_argument("--contact", default=None)
@@ -130,6 +135,8 @@ def main() -> None:
         _print_text(focus_chat(args.chat_name))
     elif args.command == "read":
         _print_text(read_current_chat())
+    elif args.command == "read-history":
+        _print_json(read_current_chat_history(args.pages, args.notches))
     elif args.command == "read-store":
         _print_json(read_current_chat_and_store(args.contact))
     elif args.command == "draft":

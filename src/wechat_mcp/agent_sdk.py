@@ -27,6 +27,7 @@ Return a concise Chinese report with the saved report path when available.
 SEND_INSTRUCTIONS = """
 You are a local WeChat desktop agent.
 You may inspect visible WeChat state, focus chats, read current chat screenshots, summarize, and draft or write replies.
+When the user asks for history, older messages, 往上翻, 历史消息, or more previous messages, use read_current_chat_history.
 Send immediately when the user explicitly asks to send and both the recipient/current chat and exact message text are clear.
 Do not ask for a second confirmation before sending a clear send request.
 For "send to <recipient> <text>" requests, call auto_send_message directly instead of first checking visible windows.

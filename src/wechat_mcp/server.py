@@ -4,6 +4,7 @@ from mcp.server.fastmcp import FastMCP
 
 from . import __version__
 from .agent import daily_check_once as run_daily_check_once
+from .history import read_current_chat_history as run_read_current_chat_history
 from .prompts import PromptManager
 from .safety import auto_send_message as safe_auto_send_message
 from .safety import send_current_chat_message as safe_send_current_chat_message
@@ -108,6 +109,12 @@ def read_current_chat() -> str:
             "Read the visible WeChat chat. Return JSON only with current_chat, visible_messages, unread_indicators, input_box_visible, uncertainty.",
         ),
     )
+
+
+@mcp.tool()
+def read_current_chat_history(scroll_pages: int = 3, scroll_notches: int = 5) -> dict:
+    """Read visible current chat history, scroll upward across pages, and return per-page visual analyses."""
+    return run_read_current_chat_history(scroll_pages, scroll_notches)
 
 
 @mcp.tool()

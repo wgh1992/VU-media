@@ -8,7 +8,7 @@ from pathlib import Path
 import pyperclip
 from pywinauto import Desktop
 from pywinauto.keyboard import send_keys
-from pywinauto.mouse import click
+from pywinauto.mouse import click, scroll
 
 from .config import get_settings
 from .screen import Region, capture_region
@@ -150,6 +150,15 @@ def click_current_chat_input() -> str:
     click(button="left", coords=(x, y))
     time.sleep(0.2)
     return f"Clicked current chat input area at ({x}, {y})."
+
+
+def scroll_current_chat_history(notches: int = 5) -> str:
+    bounds = get_wechat_bounds()
+    x = bounds.left + int(bounds.width * 0.70)
+    y = bounds.top + int(bounds.height * 0.45)
+    scroll(wheel_dist=abs(int(notches)), coords=(x, y))
+    time.sleep(0.5)
+    return f"Scrolled current chat history up by {abs(int(notches))} notches at ({x}, {y})."
 
 
 def focus_chat(chat_name: str) -> str:

@@ -193,10 +193,19 @@ list_visible_windows
 daily_check_once
 focus_chat
 read_current_chat
+read_current_chat_history
 auto_send_message
 safe_send_current_chat_with_vision
 recent_conversation_events
 ```
+
+Read older visible chat history by scrolling upward:
+
+```powershell
+python -m wechat_mcp.dev_cli read-history --pages 5 --notches 5
+```
+
+The web chat also includes a `Voice` button. It uses the browser SpeechRecognition API to transcribe speech into the input box before sending.
 
 ## Sending Messages
 

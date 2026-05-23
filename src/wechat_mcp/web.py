@@ -276,7 +276,7 @@ HTML = """
       width: min(1040px, 100%);
       margin: 0 auto;
       display: grid;
-      grid-template-columns: 1fr auto;
+      grid-template-columns: 1fr auto auto;
       gap: 10px;
       align-items: end;
     }
@@ -318,6 +318,12 @@ HTML = """
     .send-warning {
       color: var(--danger);
       font-weight: 600;
+    }
+    .voice.listening {
+      background: #dc2626;
+    }
+    .voice.unsupported {
+      display: none;
     }
     @media (max-width: 720px) {
       header { align-items: flex-start; flex-direction: column; }
@@ -362,6 +368,7 @@ HTML = """
     <footer>
       <form class="composer" id="form">
         <textarea id="message" placeholder="例如：Focus yuanmiao, read visible messages, summarize in Chinese. Do not send anything."></textarea>
+        <button class="secondary voice" id="voice" type="button" title="Voice to text">Voice</button>
         <button id="send" type="submit">Send</button>
       </form>
       <div class="hint" id="hint">send mode 可以直接发送明确的消息请求。</div>
@@ -372,6 +379,7 @@ HTML = """
     const form = document.getElementById('form');
     const input = document.getElementById('message');
     const button = document.getElementById('send');
+    const voice = document.getElementById('voice');
     const mode = document.getElementById('mode');
     const turns = document.getElementById('turns');
     const statusEl = document.getElementById('status');
@@ -379,6 +387,8 @@ HTML = """
     const conversationEl = document.getElementById('conversation');
     const newChat = document.getElementById('new-chat');
     let conversationId = localStorage.getItem('wechat_mcp_conversation_id') || '';
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    let recognition = null;
 
     function escapeHtml(value) {
       return value.replace(/[&<>"']/g, ch => ({
@@ -472,6 +482,35 @@ HTML = """
         form.requestSubmit();
       }
     });
+
+    if (SpeechRecognition) {
+      recognition = new SpeechRecognition();
+      recognition.lang = 'zh-CN';
+      recognition.interimResults = true;
+      recognition.continuous = false;
+
+      recognition.onstart = () => {
+        voice.classList.add('listening');
+        voice.textContent = 'Listening';
+      };
+      recognition.onend = () => {
+        voice.classList.remove('listening');
+        voice.textContent = 'Voice';
+      };
+      recognition.onresult = event => {
+        let text = '';
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          text += event.results[i][0].transcript;
+        }
+        input.value = `${input.value}${input.value && text ? ' ' : ''}${text}`.trim();
+      };
+      recognition.onerror = event => {
+        addMessage('agent', `语音识别失败：${event.error}`, 'error');
+      };
+      voice.addEventListener('click', () => recognition.start());
+    } else {
+      voice.classList.add('unsupported');
+    }
 
     mode.addEventListener('change', refreshHint);
     newChat.addEventListener('click', () => {
