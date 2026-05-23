@@ -185,6 +185,19 @@ python -m wechat_mcp.dev_cli agent-run "Please run one WeChat daily check." --mo
 
 For safety, daily mode only exposes low-risk tools and cannot write or send WeChat messages.
 
+Send mode intentionally exposes a small tool set to keep the agent path predictable:
+
+```text
+health_check
+list_visible_windows
+daily_check_once
+focus_chat
+read_current_chat
+auto_send_message
+safe_send_current_chat_with_vision
+recent_conversation_events
+```
+
 ## Sending Messages
 
 Manual send with confirmation:

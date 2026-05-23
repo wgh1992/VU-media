@@ -8,25 +8,15 @@ DAILY_CHECK_TOOLS = [
     "recent_conversation_events",
 ]
 
-SEND_BASE_TOOLS = [
-    *DAILY_CHECK_TOOLS,
-    "capture_wechat_window",
-    "analyze_screenshot",
-    "analyze_and_store_screenshot",
+SEND_TOOLS = [
+    "health_check",
+    "list_visible_windows",
+    "daily_check_once",
     "focus_chat",
     "read_current_chat",
-    "read_current_chat_and_store",
-    "draft_reply",
-    "summarize_chat",
-    "write_reply",
-]
-
-SEND_TOOLS = [
-    *SEND_BASE_TOOLS,
-    "send_message_confirmed",
     "auto_send_message",
-    "send_current_chat_message",
     "safe_send_current_chat_with_vision",
+    "recent_conversation_events",
 ]
 
 
