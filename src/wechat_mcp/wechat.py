@@ -14,6 +14,9 @@ from .config import get_settings
 from .screen import Region, capture_region
 
 
+WECHAT_PROCESS_NAMES = {"weixin.exe", "wechat.exe", "wechatappex.exe"}
+
+
 @dataclass(frozen=True)
 class WindowBounds:
     left: int
@@ -38,7 +41,47 @@ class WindowBounds:
         }
 
 
+def _restore_wechat_process_windows() -> None:
+    try:
+        import psutil
+        import win32con
+        import win32gui
+        import win32process
+    except Exception:
+        return
+
+    wechat_pids = {
+        process.info["pid"]
+        for process in psutil.process_iter(["pid", "name"])
+        if (process.info.get("name") or "").lower() in WECHAT_PROCESS_NAMES
+    }
+    if not wechat_pids:
+        return
+
+    def enum_callback(hwnd, _extra):
+        try:
+            _, pid = win32process.GetWindowThreadProcessId(hwnd)
+            if pid not in wechat_pids:
+                return True
+            title = win32gui.GetWindowText(hwnd)
+            class_name = win32gui.GetClassName(hwnd)
+            if not title and not class_name:
+                return True
+            win32gui.ShowWindow(hwnd, win32con.SW_RESTORE)
+            win32gui.SetForegroundWindow(hwnd)
+        except Exception:
+            pass
+        return True
+
+    try:
+        win32gui.EnumWindows(enum_callback, None)
+    except Exception:
+        return
+
+
 def _find_wechat_window():
+    _restore_wechat_process_windows()
+    time.sleep(0.2)
     settings = get_settings()
     title_pattern = re.compile(settings.wechat_window_title_regex, re.IGNORECASE)
     class_pattern = (
@@ -166,30 +209,32 @@ def click_current_chat_input() -> str:
 
 def scroll_current_chat_history(notches: int = 36, delay_seconds: float = 0.02) -> str:
     bounds = get_wechat_bounds()
-    x = bounds.left + int(bounds.width * 0.92)
+    x = bounds.right - 18
     y = bounds.top + int(bounds.height * 0.55)
     total = abs(int(notches))
+    click(button="left", coords=(x, y))
     remaining = total
     while remaining > 0:
         step = min(remaining, 20)
         scroll(wheel_dist=step, coords=(x, y))
         remaining -= step
     time.sleep(max(0.0, float(delay_seconds)))
-    return f"Scrolled current chat history up by {total} notches without clicking message content at ({x}, {y}) with {max(0.0, float(delay_seconds)):.2f}s delay."
+    return f"Scrolled current chat history up by {total} notches from the scrollbar edge at ({x}, {y}) with {max(0.0, float(delay_seconds)):.2f}s delay."
 
 
 def scroll_current_chat_to_bottom(notches: int = 120, delay_seconds: float = 0.15) -> str:
     bounds = get_wechat_bounds()
-    x = bounds.left + int(bounds.width * 0.92)
+    x = bounds.right - 18
     y = bounds.top + int(bounds.height * 0.55)
     total = abs(int(notches))
+    click(button="left", coords=(x, y))
     remaining = total
     while remaining > 0:
         step = min(remaining, 20)
         scroll(wheel_dist=-step, coords=(x, y))
         remaining -= step
     time.sleep(max(0.0, float(delay_seconds)))
-    return f"Scrolled current chat to bottom by {total} notches without clicking message content at ({x}, {y}) with {max(0.0, float(delay_seconds)):.2f}s delay."
+    return f"Scrolled current chat to bottom by {total} notches from the scrollbar edge at ({x}, {y}) with {max(0.0, float(delay_seconds)):.2f}s delay."
 
 
 def click_wechat_normalized(x_ratio: float, y_ratio: float) -> str:
