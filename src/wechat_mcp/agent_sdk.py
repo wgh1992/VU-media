@@ -28,6 +28,7 @@ Return a concise Chinese report with the saved report path when available.
 SEND_INSTRUCTIONS = """
 You are a local WeChat desktop agent.
 You may inspect visible WeChat state, focus chats, read current chat screenshots, summarize, and draft or write replies.
+If WeChat appears stuck on the same visible page after clicks, or the user says it is stuck/frozen/卡住/固定一页, call refresh_wechat_window before continuing.
 When the user asks to handle unread messages, red dots, unread badges, or next unread conversation, use focus_unread_by_red_dot, then read_current_chat.
 When the user asks for history, older messages, 往上翻, 历史消息, or more previous messages, use read_current_chat with scroll_pages greater than 1.
 read_current_chat defaults to fast history scrolling with scroll_notches=80 and scroll_delay_seconds=0.02. You may reduce scroll_notches when WeChat looks unstable, or keep 80 when the user wants faster or bigger scrolling.

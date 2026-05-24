@@ -43,10 +43,11 @@ class WeChatScrollTests(unittest.TestCase):
         self.assertIn("scrollbar edge", result)
 
     def test_normalized_click_refuses_window_chrome_area(self):
-        with patch("wechat_mcp.wechat.get_wechat_bounds", return_value=WindowBounds(0, 0, 1000, 800)):
-            with patch("wechat_mcp.wechat.click") as click_mock:
-                with self.assertRaises(ValueError):
-                    click_wechat_normalized(0.85, 0.02)
+        with patch("wechat_mcp.wechat.refresh_wechat_window"):
+            with patch("wechat_mcp.wechat.get_wechat_bounds", return_value=WindowBounds(0, 0, 1000, 800)):
+                with patch("wechat_mcp.wechat.click") as click_mock:
+                    with self.assertRaises(ValueError):
+                        click_wechat_normalized(0.85, 0.02)
 
         click_mock.assert_not_called()
 

@@ -23,6 +23,7 @@ from .visual_agent import safe_send_current_chat_with_vision as visual_safe_send
 from .wechat import capture_wechat_window as capture_window
 from .wechat import focus_chat as focus_wechat_chat
 from .wechat import list_visible_windows as list_windows
+from .wechat import refresh_wechat_window as refresh_window
 from .wechat import write_reply as write_wechat_reply
 
 
@@ -104,6 +105,12 @@ def analyze_and_store_screenshot(
 def focus_chat(chat_name: str) -> str:
     """Use WeChat search to focus a chat by name."""
     return focus_wechat_chat(chat_name)
+
+
+@mcp.tool()
+def refresh_wechat_window() -> str:
+    """Minimize/restore WeChat and force repaint when the desktop client visually freezes."""
+    return refresh_window()
 
 
 @mcp.tool()

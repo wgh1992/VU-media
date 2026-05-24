@@ -12,6 +12,7 @@ class AgentSdkTests(unittest.TestCase):
 
         self.assertIn("Do not ask for a second confirmation", instructions)
         self.assertIn("Use confirm=false by default", instructions)
+        self.assertIn("call refresh_wechat_window", instructions)
         self.assertIn("focus_unread_by_red_dot", instructions)
         self.assertIn("use read_current_chat with scroll_pages greater than 1", instructions)
         self.assertIn("scroll_delay_seconds", instructions)

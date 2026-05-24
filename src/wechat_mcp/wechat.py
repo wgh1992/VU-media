@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import re
 import time
+import ctypes
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -18,6 +19,19 @@ except Exception:
 
 from .config import get_settings
 from .screen import Region, capture_region
+
+
+def _set_process_dpi_awareness() -> None:
+    try:
+        ctypes.windll.shcore.SetProcessDpiAwareness(2)
+    except Exception:
+        try:
+            ctypes.windll.user32.SetProcessDPIAware()
+        except Exception:
+            return
+
+
+_set_process_dpi_awareness()
 
 
 WECHAT_PROCESS_NAMES = {"weixin.exe", "wechat.exe", "wechatappex.exe"}
@@ -211,6 +225,47 @@ def _activate_wechat_from_taskbar() -> bool:
     return False
 
 
+def _refresh_window_paint(window) -> bool:
+    try:
+        import win32api
+        import win32con
+        import win32gui
+    except Exception:
+        return False
+
+    try:
+        hwnd = int(window.handle)
+        _activate_window(window)
+        left, top, right, _bottom = win32gui.GetWindowRect(hwnd)
+        minimize_x = max(left + 40, right - 160)
+        minimize_y = top + 24
+        win32api.SetCursorPos((minimize_x, minimize_y))
+        time.sleep(0.08)
+        win32api.mouse_event(win32con.MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0)
+        time.sleep(0.06)
+        win32api.mouse_event(win32con.MOUSEEVENTF_LEFTUP, 0, 0, 0, 0)
+        time.sleep(0.65)
+
+        restored = _activate_wechat_from_taskbar()
+        if not restored:
+            win32gui.ShowWindow(hwnd, win32con.SW_RESTORE)
+        time.sleep(0.8)
+
+        window = _find_wechat_window(allow_restore=False)
+        _activate_window(window)
+        hwnd = int(window.handle)
+        win32gui.RedrawWindow(
+            hwnd,
+            None,
+            None,
+            win32con.RDW_INVALIDATE | win32con.RDW_UPDATENOW | win32con.RDW_ALLCHILDREN,
+        )
+        time.sleep(0.2)
+        return True
+    except Exception:
+        return False
+
+
 def _find_wechat_window(allow_restore: bool = True):
     _require_desktop_automation()
     settings = get_settings()
@@ -315,6 +370,19 @@ def focus_wechat():
     return window
 
 
+def refresh_wechat_window() -> str:
+    window = _find_wechat_window()
+    refreshed = _refresh_window_paint(window)
+    if not refreshed:
+        if _activate_wechat_from_taskbar():
+            window = _find_wechat_window(allow_restore=False)
+            refreshed = _refresh_window_paint(window)
+    _ensure_window_not_topmost(window)
+    if not refreshed:
+        raise RuntimeError("Could not refresh the WeChat window paint state.")
+    return "Refreshed WeChat window by minimizing/restoring and forcing repaint."
+
+
 def get_wechat_bounds() -> WindowBounds:
     window = focus_wechat()
     rect = window.rectangle()
@@ -322,6 +390,7 @@ def get_wechat_bounds() -> WindowBounds:
 
 
 def capture_wechat_window(output_path: str | Path | None = None) -> Path:
+    refresh_wechat_window()
     bounds = get_wechat_bounds()
     return capture_region(bounds.as_region(), output_path)
 
@@ -392,6 +461,7 @@ def click_wechat_normalized(x_ratio: float, y_ratio: float) -> str:
     if not 0 <= x_ratio <= 1 or not 0 <= y_ratio <= 1:
         raise ValueError("x_ratio and y_ratio must be between 0 and 1.")
 
+    refresh_wechat_window()
     bounds = get_wechat_bounds()
     x = bounds.left + int(bounds.width * x_ratio)
     y = bounds.top + int(bounds.height * y_ratio)
