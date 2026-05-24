@@ -3,7 +3,7 @@ from __future__ import annotations
 import unittest
 from unittest.mock import patch
 
-from wechat_mcp.wechat import WindowBounds, scroll_current_chat_history, scroll_current_chat_to_bottom
+from wechat_mcp.wechat import WindowBounds, click_wechat_normalized, scroll_current_chat_history, scroll_current_chat_to_bottom
 
 
 class WeChatScrollTests(unittest.TestCase):
@@ -28,6 +28,14 @@ class WeChatScrollTests(unittest.TestCase):
         click_mock.assert_called_once_with(button="left", coords=(982, 440))
         self.assertGreaterEqual(scroll_mock.call_count, 1)
         self.assertIn("scrollbar edge", result)
+
+    def test_normalized_click_refuses_window_chrome_area(self):
+        with patch("wechat_mcp.wechat.get_wechat_bounds", return_value=WindowBounds(0, 0, 1000, 800)):
+            with patch("wechat_mcp.wechat.click") as click_mock:
+                with self.assertRaises(ValueError):
+                    click_wechat_normalized(0.85, 0.02)
+
+        click_mock.assert_not_called()
 
 
 if __name__ == "__main__":

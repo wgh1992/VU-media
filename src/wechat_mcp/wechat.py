@@ -21,6 +21,7 @@ from .screen import Region, capture_region
 
 
 WECHAT_PROCESS_NAMES = {"weixin.exe", "wechat.exe", "wechatappex.exe"}
+WINDOW_CHROME_GUARD_PX = 48
 WECHAT_MAIN_TITLES = {"weixin", "wechat", "微信"}
 
 
@@ -101,6 +102,27 @@ def _restore_wechat_process_windows() -> None:
 
     try:
         win32gui.EnumWindows(enum_callback, None)
+    except Exception:
+        return
+
+
+def _ensure_window_not_topmost(window) -> None:
+    try:
+        import win32con
+        import win32gui
+    except Exception:
+        return
+
+    try:
+        win32gui.SetWindowPos(
+            int(window.handle),
+            win32con.HWND_NOTOPMOST,
+            0,
+            0,
+            0,
+            0,
+            win32con.SWP_NOMOVE | win32con.SWP_NOSIZE | win32con.SWP_NOACTIVATE,
+        )
     except Exception:
         return
 
@@ -194,6 +216,7 @@ def focus_wechat():
     except Exception:
         pass
     window.set_focus()
+    _ensure_window_not_topmost(window)
     time.sleep(0.3)
     return window
 
@@ -278,6 +301,12 @@ def click_wechat_normalized(x_ratio: float, y_ratio: float) -> str:
     bounds = get_wechat_bounds()
     x = bounds.left + int(bounds.width * x_ratio)
     y = bounds.top + int(bounds.height * y_ratio)
+    min_safe_y = bounds.top + WINDOW_CHROME_GUARD_PX
+    if y < min_safe_y:
+        raise ValueError(
+            f"Refusing to click WeChat window chrome/titlebar area at y={y}. "
+            f"Use a y_ratio that resolves below {min_safe_y}."
+        )
     click(button="left", coords=(x, y))
     time.sleep(1.0)
     return f"Clicked WeChat normalized coordinate ({x_ratio:.3f}, {y_ratio:.3f}) at ({x}, {y})."
