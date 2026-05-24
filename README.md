@@ -4,6 +4,8 @@ Minimal Windows MCP server for WeChat desktop automation.
 
 This project intentionally controls the official Windows desktop client through window focus, screenshots, clipboard paste, and optional UI automation. It does not use private WeChat protocols, local database reads, DLL injection, or client reverse engineering.
 
+See [`GOAL.md`](GOAL.md) for the project goal, safety boundaries, improvement backlog, and definition of done.
+
 ## What It Can Do
 
 - Capture the WeChat window or a screen region.
