@@ -6,9 +6,15 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import pyperclip
-from pywinauto import Desktop
-from pywinauto.keyboard import send_keys
-from pywinauto.mouse import click, scroll
+try:
+    from pywinauto import Desktop
+    from pywinauto.keyboard import send_keys
+    from pywinauto.mouse import click, scroll
+except Exception:
+    Desktop = None
+    send_keys = None
+    click = None
+    scroll = None
 
 from .config import get_settings
 from .screen import Region, capture_region
@@ -16,6 +22,14 @@ from .screen import Region, capture_region
 
 WECHAT_PROCESS_NAMES = {"weixin.exe", "wechat.exe", "wechatappex.exe"}
 WECHAT_MAIN_TITLES = {"weixin", "wechat", "微信"}
+
+
+def _require_desktop_automation() -> None:
+    if Desktop is None or send_keys is None or click is None or scroll is None:
+        raise RuntimeError(
+            "Windows desktop automation is not available in this runtime. "
+            "Run this command on the Windows host Python environment, not inside Linux Docker."
+        )
 
 
 @dataclass(frozen=True)
@@ -92,6 +106,7 @@ def _restore_wechat_process_windows() -> None:
 
 
 def _find_wechat_window(allow_restore: bool = True):
+    _require_desktop_automation()
     settings = get_settings()
     title_pattern = re.compile(settings.wechat_window_title_regex, re.IGNORECASE)
     class_pattern = (
@@ -140,6 +155,7 @@ def _find_wechat_window(allow_restore: bool = True):
 
 
 def list_visible_windows() -> list[dict[str, str | int | bool]]:
+    _require_desktop_automation()
     desktop = Desktop(backend="uia")
     results = []
     for window in desktop.windows():
@@ -213,6 +229,7 @@ def close_transient_overlays() -> str:
 
 
 def click_current_chat_input() -> str:
+    _require_desktop_automation()
     bounds = get_wechat_bounds()
     x = bounds.left + int(bounds.width * 0.70)
     y = bounds.bottom - 80
@@ -222,6 +239,7 @@ def click_current_chat_input() -> str:
 
 
 def scroll_current_chat_history(notches: int = 36, delay_seconds: float = 0.02) -> str:
+    _require_desktop_automation()
     bounds = get_wechat_bounds()
     x = bounds.right - 18
     y = bounds.top + int(bounds.height * 0.55)
@@ -237,6 +255,7 @@ def scroll_current_chat_history(notches: int = 36, delay_seconds: float = 0.02) 
 
 
 def scroll_current_chat_to_bottom(notches: int = 120, delay_seconds: float = 0.15) -> str:
+    _require_desktop_automation()
     bounds = get_wechat_bounds()
     x = bounds.right - 18
     y = bounds.top + int(bounds.height * 0.55)
@@ -252,6 +271,7 @@ def scroll_current_chat_to_bottom(notches: int = 120, delay_seconds: float = 0.1
 
 
 def click_wechat_normalized(x_ratio: float, y_ratio: float) -> str:
+    _require_desktop_automation()
     if not 0 <= x_ratio <= 1 or not 0 <= y_ratio <= 1:
         raise ValueError("x_ratio and y_ratio must be between 0 and 1.")
 
@@ -298,6 +318,7 @@ def click_visible_voice_to_text(index: int = 1) -> str:
 
 
 def focus_chat(chat_name: str) -> str:
+    _require_desktop_automation()
     if not chat_name.strip():
         raise ValueError("chat_name is required.")
 
@@ -313,6 +334,7 @@ def focus_chat(chat_name: str) -> str:
 
 
 def write_reply(text: str) -> str:
+    _require_desktop_automation()
     if not text.strip():
         raise ValueError("text is required.")
 
@@ -323,6 +345,7 @@ def write_reply(text: str) -> str:
 
 
 def replace_current_chat_input(text: str) -> str:
+    _require_desktop_automation()
     if not text.strip():
         raise ValueError("text is required.")
 
@@ -337,6 +360,7 @@ def replace_current_chat_input(text: str) -> str:
 
 
 def press_enter_to_send() -> str:
+    _require_desktop_automation()
     focus_wechat()
     send_keys("{ENTER}")
     return "Pressed Enter in WeChat."

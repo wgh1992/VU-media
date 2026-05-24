@@ -111,6 +111,13 @@ Stop:
 docker compose down
 ```
 
+In Docker, `/api/health` should report `runtime: container-web-only` and `desktop_automation_available: false`. If you want the chat UI to actually focus WeChat, scroll messages, read screenshots, or send through the Windows desktop client, stop Docker and run the web server from the Windows Python environment instead:
+
+```powershell
+docker compose down
+python -m wechat_mcp.web --host 127.0.0.1 --port 8787
+```
+
 The web UI has two modes:
 
 - `daily`: low-risk daily checks only.
