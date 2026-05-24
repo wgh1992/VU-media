@@ -4,6 +4,8 @@ from mcp.server.fastmcp import FastMCP
 
 from . import __version__
 from .agent import daily_check_once as run_daily_check_once
+from .clicking import click_wechat as run_click_wechat
+from .clicking import click_wechat_by_vision as run_click_wechat_by_vision
 from .history import read_current_chat_history as run_read_current_chat_history
 from .prompts import PromptManager
 from .safety import auto_send_message as safe_auto_send_message
@@ -152,6 +154,18 @@ def read_current_chat_history(
 def convert_visible_voice_to_text(index: int = 1) -> dict:
     """Click a visible WeChat voice message Convert to text / 转文字 button and visually read the converted text."""
     return run_convert_visible_voice_to_text(index)
+
+
+@mcp.tool()
+def click_wechat(x_ratio: float, y_ratio: float, reason: str | None = None) -> dict:
+    """Click a normalized coordinate inside the WeChat window. Refuses titlebar/window chrome clicks."""
+    return run_click_wechat(x_ratio, y_ratio, reason)
+
+
+@mcp.tool()
+def click_wechat_by_vision(instruction: str) -> dict:
+    """Capture WeChat, visually locate the requested UI target, then click it if clearly visible."""
+    return run_click_wechat_by_vision(instruction)
 
 
 @mcp.tool()

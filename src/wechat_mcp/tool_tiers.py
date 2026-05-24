@@ -16,6 +16,8 @@ SEND_TOOLS = [
     "focus_unread_by_red_dot",
     "read_current_chat",
     "convert_visible_voice_to_text",
+    "click_wechat",
+    "click_wechat_by_vision",
     "auto_send_message",
     "safe_send_current_chat_with_vision",
     "recent_conversation_events",

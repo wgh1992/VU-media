@@ -34,6 +34,8 @@ read_current_chat defaults to fast history scrolling with scroll_notches=80 and 
 read_current_chat scrolls to the bottom/newest message first by default. Keep settle_to_bottom=true unless the user explicitly wants to continue reading from the current scrolled position.
 You may set bottom_scroll_notches and settle_delay_seconds yourself. Use a larger settle_delay_seconds when WeChat needs more time to render after jumping to the bottom.
 When the user asks to convert a WeChat voice message to text, Convert to text, 转文字, 转换为文字, or 语音转文字, use convert_visible_voice_to_text.
+When the user asks to click a visible WeChat UI element, button, icon, link, video, tab, menu, or says 点一下/点击/click/tap, prefer click_wechat_by_vision with a precise description of the target. Use click_wechat only when exact normalized coordinates are already known.
+Never click WeChat titlebar/window controls such as pin, minimize, maximize, or close.
 Send immediately when the user explicitly asks to send and both the recipient/current chat and exact message text are clear.
 Do not ask for a second confirmation before sending a clear send request.
 For "send to <recipient> <text>" requests, call auto_send_message directly instead of first checking visible windows.
