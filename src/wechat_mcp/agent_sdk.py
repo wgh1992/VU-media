@@ -7,8 +7,9 @@ import sys
 from typing import Any
 
 from agents import Agent, ModelSettings, Runner
+from openai.types.shared.reasoning import Reasoning
 
-from .config import get_settings
+from .config import Settings, get_settings
 from .mcp_adapter import create_stdio_mcp_server, list_agent_mcp_tools
 
 
@@ -54,6 +55,16 @@ def instructions_for_mode(mode: str) -> str:
     return DAILY_INSTRUCTIONS
 
 
+def model_settings_from_config(settings: Settings) -> ModelSettings:
+    return ModelSettings(
+        tool_choice="auto",
+        parallel_tool_calls=False,
+        reasoning=Reasoning(effort=settings.agent_reasoning_effort),
+        verbosity=settings.agent_verbosity,
+        extra_body={"service_tier": settings.agent_service_tier},
+    )
+
+
 def create_wechat_agent(mode: str = "daily") -> tuple[Agent, Any]:
     settings = get_settings()
     mcp_server = create_stdio_mcp_server(mode=mode)
@@ -61,7 +72,7 @@ def create_wechat_agent(mode: str = "daily") -> tuple[Agent, Any]:
         name="WeChat Desktop Agent",
         instructions=instructions_for_mode(mode),
         model=settings.openai_model_fast,
-        model_settings=ModelSettings(tool_choice="auto", parallel_tool_calls=False),
+        model_settings=model_settings_from_config(settings),
         mcp_servers=[mcp_server],
     )
     return agent, mcp_server

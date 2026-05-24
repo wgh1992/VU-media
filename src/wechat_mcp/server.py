@@ -42,6 +42,9 @@ def health_check() -> dict:
     return {
         "version": __version__,
         "model": settings.openai_model_fast,
+        "agent_reasoning_effort": settings.agent_reasoning_effort,
+        "agent_verbosity": settings.agent_verbosity,
+        "agent_service_tier": settings.agent_service_tier,
         "openai_api_key_set": bool(settings.openai_api_key),
         "send_requires_confirm": settings.send_requires_confirm,
         "store_message_text": settings.store_message_text,
