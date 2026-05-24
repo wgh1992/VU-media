@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
+import platform
 from dataclasses import asdict
 from pathlib import Path
 from typing import Any, Literal
@@ -111,9 +113,12 @@ def health() -> dict:
     settings = get_settings()
     safe_settings = asdict(settings)
     safe_settings["openai_api_key"] = bool(settings.openai_api_key)
+    runtime = "windows-desktop" if platform.system().lower() == "windows" else "container-web-only"
     return {
         "ok": True,
         "settings": safe_settings,
+        "runtime": runtime,
+        "desktop_automation_available": runtime == "windows-desktop" and not os.getenv("WECHAT_MCP_WEB_ONLY"),
         "modes": ["daily", "send"],
     }
 
