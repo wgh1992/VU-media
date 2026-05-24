@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import unittest
+from pathlib import Path
 from tempfile import TemporaryDirectory
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, patch
@@ -38,7 +39,32 @@ class WebTests(unittest.TestCase):
         self.assertEqual(body["output"], "ok from agent")
         self.assertEqual(body["mode"], "send")
         self.assertTrue(body["conversation_id"].startswith("web-"))
+        self.assertEqual(body["screenshots"], [])
         run_mock.assert_awaited_once_with("read current chat", mode="send", max_turns=3)
+
+    def test_chat_returns_new_screenshots(self):
+        result = SimpleNamespace(final_output="ok with screenshot")
+
+        async def create_screenshot(*args, **kwargs):
+            screenshot_dir = Path(tmp) / "sessions" / "__current_chat__" / "screenshots"
+            screenshot_dir.mkdir(parents=True)
+            (screenshot_dir / "chat.png").write_bytes(b"png")
+            return result
+
+        with TemporaryDirectory() as tmp:
+            with patch.dict("os.environ", {"WECHAT_MCP_DATA_DIR": tmp}, clear=False):
+                with patch("wechat_mcp.web.run_wechat_agent", new=AsyncMock(side_effect=create_screenshot)):
+                    client = TestClient(app)
+                    response = client.post(
+                        "/api/chat",
+                        json={"message": "read current chat", "mode": "send", "max_turns": 3},
+                    )
+
+        self.assertEqual(response.status_code, 200)
+        screenshots = response.json()["screenshots"]
+        self.assertEqual(len(screenshots), 1)
+        self.assertEqual(screenshots[0]["name"], "chat.png")
+        self.assertIn("/api/screenshots/", screenshots[0]["url"])
 
     def test_chat_uses_conversation_history(self):
         result = SimpleNamespace(final_output="second answer")

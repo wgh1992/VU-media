@@ -6,12 +6,14 @@ import os
 import platform
 from dataclasses import asdict
 from pathlib import Path
+from time import time
 from typing import Any, Literal
+from urllib.parse import quote
 from uuid import uuid4
 
 import uvicorn
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import HTMLResponse
+from fastapi.responses import FileResponse, HTMLResponse
 from pydantic import BaseModel, Field
 
 from .agent_sdk import run_wechat_agent
@@ -29,13 +31,57 @@ class ChatRequest(BaseModel):
     conversation_id: str | None = Field(default=None, max_length=80)
 
 
+class ScreenshotAttachment(BaseModel):
+    url: str
+    name: str
+    path: str
+
+
 class ChatResponse(BaseModel):
     output: str
     mode: Mode
     conversation_id: str
+    screenshots: list[ScreenshotAttachment] = Field(default_factory=list)
 
 
 app = FastAPI(title="WeChat MCP Web Chat")
+
+
+def _data_root() -> Path:
+    return Path(get_settings().data_dir).resolve()
+
+
+def _screenshot_url(path: Path) -> str:
+    relative = path.resolve().relative_to(_data_root()).as_posix()
+    return f"/api/screenshots/{quote(relative)}"
+
+
+def _collect_new_screenshots(since_epoch: float, limit: int = 8) -> list[ScreenshotAttachment]:
+    root = _data_root()
+    if not root.exists():
+        return []
+
+    candidates = []
+    for path in root.rglob("*.png"):
+        if not path.is_file():
+            continue
+        try:
+            modified = path.stat().st_mtime
+        except OSError:
+            continue
+        if modified >= since_epoch:
+            candidates.append((modified, path))
+
+    screenshots = []
+    for _, path in sorted(candidates, reverse=True)[:limit]:
+        screenshots.append(
+            ScreenshotAttachment(
+                url=_screenshot_url(path),
+                name=path.name,
+                path=str(path),
+            )
+        )
+    return screenshots
 
 
 class WebConversationStore:
@@ -123,6 +169,17 @@ def health() -> dict:
     }
 
 
+@app.get("/api/screenshots/{relative_path:path}")
+def screenshot(relative_path: str) -> FileResponse:
+    root = _data_root()
+    path = (root / relative_path).resolve()
+    if not path.is_file() or path.suffix.lower() != ".png":
+        raise HTTPException(status_code=404, detail="screenshot not found")
+    if root not in path.parents and path != root:
+        raise HTTPException(status_code=404, detail="screenshot not found")
+    return FileResponse(path)
+
+
 @app.post("/api/chat", response_model=ChatResponse)
 async def chat(request: ChatRequest) -> ChatResponse:
     prompt = request.message.strip()
@@ -134,6 +191,7 @@ async def chat(request: ChatRequest) -> ChatResponse:
     history = store.recent(conversation_id)
     agent_prompt = _prompt_with_context(prompt, history)
     store.append(conversation_id, "user", prompt, request.mode)
+    screenshot_since = time() - 1.0
 
     try:
         result = await run_wechat_agent(agent_prompt, mode=request.mode, max_turns=request.max_turns)
@@ -143,7 +201,8 @@ async def chat(request: ChatRequest) -> ChatResponse:
 
     output = str(result.final_output)
     store.append(conversation_id, "agent", output, request.mode)
-    return ChatResponse(output=output, mode=request.mode, conversation_id=conversation_id)
+    screenshots = _collect_new_screenshots(screenshot_since)
+    return ChatResponse(output=output, mode=request.mode, conversation_id=conversation_id, screenshots=screenshots)
 
 
 def main() -> None:
@@ -266,6 +325,37 @@ HTML = """
       border-color: #fed7aa;
       background: #fff7ed;
       color: var(--danger);
+    }
+    .attachments {
+      margin-top: 10px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 8px;
+    }
+    .attachment {
+      display: block;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      overflow: hidden;
+      background: #f8fafc;
+      color: inherit;
+      text-decoration: none;
+    }
+    .attachment img {
+      display: block;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      object-fit: cover;
+      background: #eef2f7;
+    }
+    .attachment span {
+      display: block;
+      padding: 6px 8px;
+      color: var(--muted);
+      font-size: 11px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     .meta {
       color: var(--muted);
@@ -395,10 +485,24 @@ HTML = """
       }[ch]));
     }
 
-    function addMessage(role, text, kind = '') {
+    function addMessage(role, text, kind = '', screenshots = []) {
       const el = document.createElement('div');
       el.className = `msg ${role} ${kind}`;
       el.innerHTML = `<div class="meta">${escapeHtml(role)}</div>${escapeHtml(text)}`;
+      if (screenshots.length) {
+        const attachments = document.createElement('div');
+        attachments.className = 'attachments';
+        for (const screenshot of screenshots) {
+          const link = document.createElement('a');
+          link.className = 'attachment';
+          link.href = screenshot.url;
+          link.target = '_blank';
+          link.rel = 'noreferrer';
+          link.innerHTML = `<img src="${escapeHtml(screenshot.url)}" alt="${escapeHtml(screenshot.name)}" loading="lazy" /><span>${escapeHtml(screenshot.name)}</span>`;
+          attachments.appendChild(link);
+        }
+        el.appendChild(attachments);
+      }
       messages.appendChild(el);
       el.scrollIntoView({ block: 'end', behavior: 'smooth' });
     }
@@ -462,7 +566,7 @@ HTML = """
           throw new Error(data.detail || `HTTP ${res.status}`);
         }
         setConversationId(data.conversation_id);
-        addMessage('agent', data.output);
+        addMessage('agent', data.output, '', data.screenshots || []);
       } catch (err) {
         addMessage('agent', String(err.message || err), 'error');
       } finally {
