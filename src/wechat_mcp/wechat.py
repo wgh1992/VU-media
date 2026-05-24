@@ -23,6 +23,7 @@ from .screen import Region, capture_region
 WECHAT_PROCESS_NAMES = {"weixin.exe", "wechat.exe", "wechatappex.exe"}
 WINDOW_CHROME_GUARD_PX = 48
 WECHAT_MAIN_TITLES = {"weixin", "wechat", "微信"}
+WECHAT_TASKBAR_LABELS = ("wechat", "weixin", "微信")
 
 
 def _require_desktop_automation() -> None:
@@ -127,6 +128,89 @@ def _ensure_window_not_topmost(window) -> None:
         return
 
 
+def _is_foreground_window(window) -> bool:
+    try:
+        import win32gui
+    except Exception:
+        return False
+
+    try:
+        return win32gui.GetForegroundWindow() == int(window.handle)
+    except Exception:
+        return False
+
+
+def _activate_window(window) -> bool:
+    try:
+        import win32api
+        import win32con
+        import win32gui
+        import win32process
+    except Exception:
+        return False
+
+    try:
+        hwnd = int(window.handle)
+        if win32gui.IsIconic(hwnd):
+            win32gui.ShowWindow(hwnd, win32con.SW_RESTORE)
+            time.sleep(0.2)
+        else:
+            win32gui.ShowWindow(hwnd, win32con.SW_SHOW)
+
+        _ensure_window_not_topmost(window)
+        win32gui.BringWindowToTop(hwnd)
+
+        foreground = win32gui.GetForegroundWindow()
+        current_thread = win32api.GetCurrentThreadId()
+        target_thread, _ = win32process.GetWindowThreadProcessId(hwnd)
+        foreground_thread, _ = win32process.GetWindowThreadProcessId(foreground)
+
+        attached_target = False
+        attached_foreground = False
+        try:
+            if target_thread:
+                win32process.AttachThreadInput(current_thread, target_thread, True)
+                attached_target = True
+            if foreground_thread and foreground_thread != target_thread:
+                win32process.AttachThreadInput(current_thread, foreground_thread, True)
+                attached_foreground = True
+            win32gui.SetForegroundWindow(hwnd)
+            win32gui.SetActiveWindow(hwnd)
+            win32gui.SetFocus(hwnd)
+        finally:
+            if attached_foreground:
+                win32process.AttachThreadInput(current_thread, foreground_thread, False)
+            if attached_target:
+                win32process.AttachThreadInput(current_thread, target_thread, False)
+    except Exception:
+        return False
+
+    time.sleep(0.2)
+    return _is_foreground_window(window)
+
+
+def _activate_wechat_from_taskbar() -> bool:
+    _require_desktop_automation()
+    desktop = Desktop(backend="uia")
+    for class_name in ("Shell_TrayWnd", "Shell_SecondaryTrayWnd"):
+        try:
+            taskbar = desktop.window(class_name=class_name)
+            controls = taskbar.descendants()
+        except Exception:
+            continue
+        for control in controls:
+            try:
+                label = (control.window_text() or "").strip().lower()
+                if not label or not any(marker in label for marker in WECHAT_TASKBAR_LABELS):
+                    continue
+                control.click_input()
+                time.sleep(0.6)
+                return True
+            except Exception:
+                continue
+    return False
+
+
 def _find_wechat_window(allow_restore: bool = True):
     _require_desktop_automation()
     settings = get_settings()
@@ -215,7 +299,17 @@ def focus_wechat():
             time.sleep(0.5)
     except Exception:
         pass
-    window.set_focus()
+    activated = _activate_window(window)
+    if not activated:
+        try:
+            window.set_focus()
+            time.sleep(0.2)
+            activated = _is_foreground_window(window)
+        except Exception:
+            activated = False
+    if not activated and _activate_wechat_from_taskbar():
+        window = _find_wechat_window(allow_restore=False)
+        _activate_window(window)
     _ensure_window_not_topmost(window)
     time.sleep(0.3)
     return window

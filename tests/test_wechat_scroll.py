@@ -3,7 +3,20 @@ from __future__ import annotations
 import unittest
 from unittest.mock import patch
 
-from wechat_mcp.wechat import WindowBounds, click_wechat_normalized, scroll_current_chat_history, scroll_current_chat_to_bottom
+from wechat_mcp.wechat import WindowBounds, click_wechat_normalized, focus_wechat, scroll_current_chat_history, scroll_current_chat_to_bottom
+
+
+class FakeWindow:
+    handle = 123
+
+    def __init__(self):
+        self.focused = False
+
+    def rectangle(self):
+        return WindowBounds(0, 0, 1000, 800)
+
+    def set_focus(self):
+        self.focused = True
 
 
 class WeChatScrollTests(unittest.TestCase):
@@ -36,6 +49,23 @@ class WeChatScrollTests(unittest.TestCase):
                     click_wechat_normalized(0.85, 0.02)
 
         click_mock.assert_not_called()
+
+    def test_focus_wechat_uses_taskbar_fallback_when_foreground_activation_fails(self):
+        first_window = FakeWindow()
+        second_window = FakeWindow()
+        with patch("wechat_mcp.wechat._find_wechat_window", side_effect=[first_window, second_window]) as find_mock:
+            with patch("wechat_mcp.wechat._activate_window", side_effect=[False, True]) as activate_mock:
+                with patch("wechat_mcp.wechat._is_foreground_window", return_value=False):
+                    with patch("wechat_mcp.wechat._activate_wechat_from_taskbar", return_value=True) as taskbar_mock:
+                        with patch("wechat_mcp.wechat._ensure_window_not_topmost") as not_topmost_mock:
+                            with patch("wechat_mcp.wechat.time.sleep"):
+                                result = focus_wechat()
+
+        self.assertIs(result, second_window)
+        self.assertEqual(find_mock.call_count, 2)
+        self.assertEqual(activate_mock.call_count, 2)
+        taskbar_mock.assert_called_once_with()
+        not_topmost_mock.assert_called_with(second_window)
 
 
 if __name__ == "__main__":
