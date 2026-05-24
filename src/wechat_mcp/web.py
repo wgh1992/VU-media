@@ -27,7 +27,7 @@ Mode = Literal["daily", "send"]
 class ChatRequest(BaseModel):
     message: str = Field(min_length=1, max_length=4000)
     mode: Mode = "send"
-    max_turns: int = Field(default=10, ge=1, le=20)
+    max_turns: int = Field(default=20, ge=1, le=40)
     conversation_id: str | None = Field(default=None, max_length=80)
 
 
@@ -441,7 +441,7 @@ HTML = """
         </label>
         <label>
           Turns
-          <input id="turns" type="number" min="1" max="20" value="10" />
+          <input id="turns" type="number" min="1" max="40" value="20" />
         </label>
         <button class="secondary" id="new-chat" type="button">New Chat</button>
       </div>
@@ -557,7 +557,7 @@ HTML = """
           body: JSON.stringify({
             message: text,
             mode: mode.value,
-            max_turns: Number(turns.value || 10),
+            max_turns: Number(turns.value || 20),
             conversation_id: conversationId || null
           })
         });

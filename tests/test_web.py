@@ -144,7 +144,7 @@ class WebTests(unittest.TestCase):
 
         self.assertEqual(response.status_code, 422)
 
-    def test_chat_accepts_twenty_turns(self):
+    def test_chat_accepts_forty_turns(self):
         result = SimpleNamespace(final_output="ok")
         with TemporaryDirectory() as tmp:
             with patch.dict("os.environ", {"WECHAT_MCP_DATA_DIR": tmp}, clear=False):
@@ -152,17 +152,17 @@ class WebTests(unittest.TestCase):
                     client = TestClient(app)
                     response = client.post(
                         "/api/chat",
-                        json={"message": "read current chat", "mode": "send", "max_turns": 20},
+                        json={"message": "read current chat", "mode": "send", "max_turns": 40},
                     )
 
         self.assertEqual(response.status_code, 200)
-        run_mock.assert_awaited_once_with("read current chat", mode="send", max_turns=20)
+        run_mock.assert_awaited_once_with("read current chat", mode="send", max_turns=40)
 
-    def test_chat_rejects_more_than_twenty_turns(self):
+    def test_chat_rejects_more_than_forty_turns(self):
         client = TestClient(app)
         response = client.post(
             "/api/chat",
-            json={"message": "hello", "mode": "send", "max_turns": 21},
+            json={"message": "hello", "mode": "send", "max_turns": 41},
         )
 
         self.assertEqual(response.status_code, 422)
