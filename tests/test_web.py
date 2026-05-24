@@ -144,6 +144,29 @@ class WebTests(unittest.TestCase):
 
         self.assertEqual(response.status_code, 422)
 
+    def test_chat_accepts_twenty_turns(self):
+        result = SimpleNamespace(final_output="ok")
+        with TemporaryDirectory() as tmp:
+            with patch.dict("os.environ", {"WECHAT_MCP_DATA_DIR": tmp}, clear=False):
+                with patch("wechat_mcp.web.run_wechat_agent", new=AsyncMock(return_value=result)) as run_mock:
+                    client = TestClient(app)
+                    response = client.post(
+                        "/api/chat",
+                        json={"message": "read current chat", "mode": "send", "max_turns": 20},
+                    )
+
+        self.assertEqual(response.status_code, 200)
+        run_mock.assert_awaited_once_with("read current chat", mode="send", max_turns=20)
+
+    def test_chat_rejects_more_than_twenty_turns(self):
+        client = TestClient(app)
+        response = client.post(
+            "/api/chat",
+            json={"message": "hello", "mode": "send", "max_turns": 21},
+        )
+
+        self.assertEqual(response.status_code, 422)
+
 
 if __name__ == "__main__":
     unittest.main()
