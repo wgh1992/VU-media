@@ -1,0 +1,24 @@
+services:
+  wechat-mcp-web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: wechat-mcp-web
+    ports:
+      - "8787:8787"
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_MODEL_FAST: ${OPENAI_MODEL_FAST:-gpt-5.4-nano}
+      WECHAT_SEND_REQUIRES_CONFIRM: ${WECHAT_SEND_REQUIRES_CONFIRM:-false}
+      WECHAT_MCP_DATA_DIR: /app/.data
+      WECHAT_MCP_STORE_MESSAGE_TEXT: ${WECHAT_MCP_STORE_MESSAGE_TEXT:-false}
+      WECHAT_MCP_PROMPTS_DIR: /app/prompts
+      WECHAT_WINDOW_TITLE_REGEX: ${WECHAT_WINDOW_TITLE_REGEX:-.*微信.*|.*WeChat.*|.*Weixin.*}
+      WECHAT_WINDOW_CLASS_REGEX: ${WECHAT_WINDOW_CLASS_REGEX:-Qt.*|WeChat.*}
+    volumes:
+      - ./.data:/app/.data
+      - ./prompts:/app/prompts:ro
+    restart: unless-stopped

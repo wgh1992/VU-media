@@ -78,6 +78,37 @@ Then open:
 http://127.0.0.1:8787
 ```
 
+### Docker Web Mode
+
+Docker can run the Web Chat/API shell, but it cannot directly control the Windows WeChat desktop window. The desktop automation tools depend on the host Windows UI session, screenshots, mouse/keyboard control, and UI Automation.
+
+Use Docker for the web UI and non-GUI health/API checks:
+
+```powershell
+cd E:\vu\media\wechat-mcp
+Copy-Item .env.docker.example .env
+# Edit .env and set OPENAI_API_KEY.
+docker compose up -d --build
+```
+
+Then open:
+
+```text
+http://127.0.0.1:8787
+```
+
+Check logs:
+
+```powershell
+docker compose logs -f
+```
+
+Stop:
+
+```powershell
+docker compose down
+```
+
 The web UI has two modes:
 
 - `daily`: low-risk daily checks only.
