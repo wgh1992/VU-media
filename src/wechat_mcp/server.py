@@ -5,6 +5,7 @@ from mcp.server.fastmcp import FastMCP
 from . import __version__
 from .agent import daily_check_once as run_daily_check_once
 from .clicking import click_wechat as run_click_wechat
+from .clicking import click_wechat_by_template as run_click_wechat_by_template
 from .clicking import click_wechat_by_vision as run_click_wechat_by_vision
 from .history import read_current_chat_history as run_read_current_chat_history
 from .prompts import PromptManager
@@ -166,6 +167,30 @@ def click_wechat(x_ratio: float, y_ratio: float, reason: str | None = None) -> d
 def click_wechat_by_vision(instruction: str) -> dict:
     """Capture WeChat, visually locate the requested UI target, then click it if clearly visible."""
     return run_click_wechat_by_vision(instruction)
+
+
+@mcp.tool()
+def click_wechat_by_template(
+    template_image_path: str,
+    threshold: float = 0.20,
+    search_left_ratio: float = 0.0,
+    search_top_ratio: float = 0.0,
+    search_right_ratio: float = 0.25,
+    search_bottom_ratio: float = 1.0,
+    downscale: float = 0.5,
+    stride: int = 2,
+) -> dict:
+    """Find a small template screenshot inside the WeChat window and click the best match."""
+    return run_click_wechat_by_template(
+        template_image_path,
+        threshold,
+        search_left_ratio,
+        search_top_ratio,
+        search_right_ratio,
+        search_bottom_ratio,
+        downscale,
+        stride,
+    )
 
 
 @mcp.tool()

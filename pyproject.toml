@@ -9,6 +9,7 @@ dependencies = [
   "mcp>=1.2.0",
   "openai>=1.59.0",
   "openai-agents>=0.7.0",
+  "numpy>=1.26.0",
   "pillow>=10.4.0",
   "mss>=9.0.1",
   "pyperclip>=1.9.0",

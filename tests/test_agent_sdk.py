@@ -18,6 +18,7 @@ class AgentSdkTests(unittest.TestCase):
         self.assertIn("scroll_notches=80", instructions)
         self.assertIn("use convert_visible_voice_to_text", instructions)
         self.assertIn("prefer click_wechat_by_vision", instructions)
+        self.assertIn("use click_wechat_by_template", instructions)
         self.assertIn("Never click WeChat titlebar", instructions)
         self.assertIn("转换为文字", instructions)
         self.assertIn("call auto_send_message directly", instructions)
