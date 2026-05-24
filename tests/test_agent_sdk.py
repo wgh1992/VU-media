@@ -39,6 +39,7 @@ class AgentSdkTests(unittest.TestCase):
             data_dir=".data",
             store_message_text=False,
             prompts_dir="prompts",
+            web_agent_timeout_seconds=240,
         )
 
         model_settings = model_settings_from_config(settings)

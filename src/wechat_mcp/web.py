@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import asyncio
 import json
 import os
 import platform
@@ -187,6 +188,7 @@ async def chat(request: ChatRequest) -> ChatResponse:
         raise HTTPException(status_code=400, detail="message is required")
 
     store = WebConversationStore()
+    settings = get_settings()
     conversation_id = store.normalize_id(request.conversation_id)
     history = store.recent(conversation_id)
     agent_prompt = _prompt_with_context(prompt, history)
@@ -194,7 +196,14 @@ async def chat(request: ChatRequest) -> ChatResponse:
     screenshot_since = time() - 1.0
 
     try:
-        result = await run_wechat_agent(agent_prompt, mode=request.mode, max_turns=request.max_turns)
+        result = await asyncio.wait_for(
+            run_wechat_agent(agent_prompt, mode=request.mode, max_turns=request.max_turns),
+            timeout=max(1.0, settings.web_agent_timeout_seconds),
+        )
+    except TimeoutError as exc:
+        message = f"Agent run timed out after {settings.web_agent_timeout_seconds:.0f}s."
+        store.append(conversation_id, "agent", f"ERROR: {message}", request.mode)
+        raise HTTPException(status_code=504, detail=message) from exc
     except Exception as exc:
         store.append(conversation_id, "agent", f"ERROR: {exc}", request.mode)
         raise HTTPException(status_code=500, detail=str(exc)) from exc

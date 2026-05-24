@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -166,6 +167,26 @@ class WebTests(unittest.TestCase):
         )
 
         self.assertEqual(response.status_code, 422)
+
+    def test_chat_times_out_long_agent_runs(self):
+        async def slow_agent(*args, **kwargs):
+            await asyncio.sleep(1)
+
+        with TemporaryDirectory() as tmp:
+            with patch.dict(
+                "os.environ",
+                {"WECHAT_MCP_DATA_DIR": tmp, "WECHAT_WEB_AGENT_TIMEOUT_SECONDS": "0.01"},
+                clear=False,
+            ):
+                with patch("wechat_mcp.web.run_wechat_agent", new=AsyncMock(side_effect=slow_agent)):
+                    client = TestClient(app)
+                    response = client.post(
+                        "/api/chat",
+                        json={"message": "read current chat", "mode": "send", "max_turns": 3},
+                    )
+
+        self.assertEqual(response.status_code, 504)
+        self.assertIn("timed out", response.json()["detail"])
 
 
 if __name__ == "__main__":

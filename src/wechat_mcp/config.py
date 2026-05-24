@@ -22,6 +22,7 @@ class Settings:
     data_dir: str
     store_message_text: bool
     prompts_dir: str | None
+    web_agent_timeout_seconds: float
 
 
 def _env_bool(name: str, default: bool) -> bool:
@@ -59,4 +60,5 @@ def get_settings() -> Settings:
         data_dir=os.getenv("WECHAT_MCP_DATA_DIR", ".data"),
         store_message_text=_env_bool("WECHAT_MCP_STORE_MESSAGE_TEXT", False),
         prompts_dir=os.getenv("WECHAT_MCP_PROMPTS_DIR"),
+        web_agent_timeout_seconds=float(os.getenv("WECHAT_WEB_AGENT_TIMEOUT_SECONDS", "240")),
     )
